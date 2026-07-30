@@ -10,7 +10,7 @@ from config import (
 )
 
 
-# Gemini Client
+# Gemini
 client = genai.Client(
     api_key=GEMINI_API_KEY
 )
@@ -21,19 +21,20 @@ async def create_analysis():
     prompt = """
 تحلیل XAUUSD (طلا) انجام بده.
 
-خروجی را فارسی بنویس و شامل این موارد باشد:
+تحلیل را فارسی و مناسب کانال تلگرام بنویس.
 
-- روند فعلی بازار
+موارد:
+- وضعیت روند فعلی
 - حمایت و مقاومت مهم
 - سناریوی خرید
 - سناریوی فروش
-- مدیریت ریسک
+- نقاط مهم مدیریت ریسک
 
-تحلیل برای انتشار در کانال تلگرام باشد.
+تحلیل کوتاه ولی کاربردی باشد.
 """
 
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-2.0-flash",
         contents=prompt
     )
 
