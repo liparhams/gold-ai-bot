@@ -4,8 +4,8 @@ import os
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 
-# xAI Grok
-XAI_API_KEY = os.getenv("XAI_API_KEY")
+# OpenRouter
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 # Market
 SYMBOL = "XAUUSD"
