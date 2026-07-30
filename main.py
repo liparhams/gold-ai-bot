@@ -27,14 +27,16 @@ def create_analysis():
                 "content": """
 تحلیل XAUUSD (طلا) انجام بده.
 
-فارسی بنویس:
-- روند بازار
-- حمایت و مقاومت
+به زبان فارسی بنویس.
+
+شامل:
+- روند فعلی بازار
+- حمایت و مقاومت مهم
 - سناریوی خرید
 - سناریوی فروش
 - مدیریت ریسک
 
-مناسب انتشار در کانال تلگرام باشد.
+تحلیل کوتاه و مناسب کانال تلگرام باشد.
 """
             }
         ]
@@ -48,7 +50,13 @@ def create_analysis():
 
     result = response.json()
 
-    return result["choices"][0]["message"]["content"]
+    print(result)
+
+    if "choices" in result:
+        return result["choices"][0]["message"]["content"]
+
+    else:
+        return "خطای Grok: " + str(result)
 
 
 async def send_analysis():
