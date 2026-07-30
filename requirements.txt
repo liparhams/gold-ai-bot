@@ -1,6 +1,5 @@
 google-genai
 python-telegram-bot
-tvdatafeed
 mplfinance
 pandas
 matplotlib
