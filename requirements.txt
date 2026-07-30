@@ -1,9 +1,3 @@
-google-genai
 python-telegram-bot
-mplfinance
-pandas
-matplotlib
 requests
-pillow
-schedule
 python-dotenv
