@@ -1,5 +1,7 @@
-import telebot
-import google.generativeai as genai
+import asyncio
+
+from telegram import Bot
+from google import genai
 
 from config import (
     TELEGRAM_TOKEN,
@@ -8,45 +10,49 @@ from config import (
 )
 
 
-# Telegram
-bot = telebot.TeleBot(TELEGRAM_TOKEN)
+# Gemini Client
+client = genai.Client(
+    api_key=GEMINI_API_KEY
+)
 
 
-# Gemini
-genai.configure(api_key=GEMINI_API_KEY)
-
-model = genai.GenerativeModel("gemini-2.5-flash")
-
-
-def create_analysis():
+async def create_analysis():
 
     prompt = """
-    تحلیل XAUUSD (طلا) انجام بده.
+تحلیل XAUUSD (طلا) انجام بده.
 
-    تحلیل شامل:
-    - روند فعلی بازار
-    - حمایت و مقاومت
-    - سناریوی خرید
-    - سناریوی فروش
-    - مدیریت ریسک
+خروجی را فارسی بنویس و شامل این موارد باشد:
 
-    تحلیل را به زبان فارسی و مناسب انتشار در کانال تلگرام بنویس.
-    """
+- روند فعلی بازار
+- حمایت و مقاومت مهم
+- سناریوی خرید
+- سناریوی فروش
+- مدیریت ریسک
 
-    response = model.generate_content(prompt)
+تحلیل برای انتشار در کانال تلگرام باشد.
+"""
+
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt
+    )
 
     return response.text
 
 
-def send_analysis():
+async def send_analysis():
 
-    analysis = create_analysis()
+    analysis = await create_analysis()
 
-    bot.send_message(
-        CHANNEL_ID,
-        analysis
+    bot = Bot(
+        token=TELEGRAM_TOKEN
+    )
+
+    await bot.send_message(
+        chat_id=CHANNEL_ID,
+        text=analysis
     )
 
 
 if __name__ == "__main__":
-    send_analysis()
+    asyncio.run(send_analysis())
