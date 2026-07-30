@@ -1,49 +1,59 @@
 import asyncio
+import requests
 
 from telegram import Bot
-from google import genai
 
 from config import (
     TELEGRAM_TOKEN,
     CHANNEL_ID,
-    GEMINI_API_KEY
+    XAI_API_KEY
 )
 
 
-client = genai.Client(
-    api_key=GEMINI_API_KEY
-)
+def create_analysis():
 
+    url = "https://api.x.ai/v1/chat/completions"
 
-async def create_analysis():
+    headers = {
+        "Authorization": f"Bearer {XAI_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
-    prompt = """
+    data = {
+        "model": "grok-3-mini",
+        "messages": [
+            {
+                "role": "user",
+                "content": """
 تحلیل XAUUSD (طلا) انجام بده.
 
-به زبان فارسی و مناسب کانال تلگرام بنویس.
-
-موارد:
-- روند فعلی بازار
-- حمایت و مقاومت مهم
+فارسی بنویس:
+- روند بازار
+- حمایت و مقاومت
 - سناریوی خرید
 - سناریوی فروش
 - مدیریت ریسک
 
-تحلیل کوتاه و کاربردی باشد.
+مناسب انتشار در کانال تلگرام باشد.
 """
+            }
+        ]
+    }
 
-
-    response = client.models.generate_content(
-        model="gemini-2.0-flash-lite",
-        contents=prompt
+    response = requests.post(
+        url,
+        headers=headers,
+        json=data
     )
 
-    return response.text
+    result = response.json()
+
+    return result["choices"][0]["message"]["content"]
 
 
 async def send_analysis():
 
-    analysis = await create_analysis()
+    analysis = create_analysis()
 
     bot = Bot(
         token=TELEGRAM_TOKEN
