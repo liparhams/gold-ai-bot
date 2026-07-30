@@ -6,37 +6,35 @@ from telegram import Bot
 from config import (
     TELEGRAM_TOKEN,
     CHANNEL_ID,
-    XAI_API_KEY
+    OPENROUTER_API_KEY
 )
 
 
 def create_analysis():
 
-    url = "https://api.x.ai/v1/chat/completions"
+    url = "https://openrouter.ai/api/v1/chat/completions"
 
     headers = {
-        "Authorization": f"Bearer {XAI_API_KEY}",
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json"
     }
 
     data = {
-        "model": "grok-3-mini",
+        "model": "meta-llama/llama-3.1-8b-instruct:free",
         "messages": [
             {
                 "role": "user",
                 "content": """
-تحلیل XAUUSD (طلا) انجام بده.
-
-به زبان فارسی بنویس.
+یک تحلیل کوتاه XAUUSD (طلا) برای کانال تلگرام بنویس.
 
 شامل:
 - روند فعلی بازار
-- حمایت و مقاومت مهم
+- حمایت و مقاومت
 - سناریوی خرید
 - سناریوی فروش
 - مدیریت ریسک
 
-تحلیل کوتاه و مناسب کانال تلگرام باشد.
+تحلیل به زبان فارسی و حرفه‌ای باشد.
 """
             }
         ]
@@ -56,7 +54,7 @@ def create_analysis():
         return result["choices"][0]["message"]["content"]
 
     else:
-        return "خطای Grok: " + str(result)
+        return "خطای OpenRouter: " + str(result)
 
 
 async def send_analysis():
