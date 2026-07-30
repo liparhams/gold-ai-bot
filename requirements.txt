@@ -1,0 +1,10 @@
+google-genai
+python-telegram-bot
+tvdatafeed
+mplfinance
+pandas
+matplotlib
+requests
+pillow
+schedule
+python-dotenv
