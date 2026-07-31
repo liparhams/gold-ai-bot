@@ -16,7 +16,6 @@ MARKET_API_KEY = os.getenv(
 )
 
 
-
 SYMBOL = "XAUUSD"
 
 
@@ -32,8 +31,6 @@ TIMEFRAMES = {
 }
 
 
-
-# اگر یکی قطع شد می‌رود بعدی
 
 AI_MODELS = [
 
