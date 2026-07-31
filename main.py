@@ -2,41 +2,36 @@ import asyncio
 import requests
 from telegram import Bot
 
-# =========================
-# تنظیمات
-# =========================
-
-BOT_TOKEN = "توکن_ربات_تلگرام_اینجا"
-CHAT_ID = "آیدی_کانال_یا_گروه_اینجا"
-
-OPENROUTER_API_KEY = "کلید_OpenRouter_اینجا"
+from config import BOT_TOKEN, CHAT_ID, OPENROUTER_API_KEY
 
 
-# =========================
-# دریافت تحلیل AI
-# =========================
+MODEL = "deepseek/deepseek-chat"
+
 
 def get_ai_analysis():
+
+    api_key = OPENROUTER_API_KEY.strip()
+
+    if not api_key:
+        return "❌ OpenRouter API Key خالی است"
 
     url = "https://openrouter.ai/api/v1/chat/completions"
 
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
         "HTTP-Referer": "https://github.com",
-        "X-Title": "Gold AI Bot"
+        "X-Title": "Gold AI Analyzer"
     }
 
     prompt = """
-تو یک تحلیلگر حرفه ای XAUUSD هستی.
+تو یک تحلیلگر حرفه‌ای بازار طلا هستی.
 
-تحلیل بده، سیگنال مستقیم نده.
+برای XAUUSD تحلیل تکنیکال بده.
 
 تایم فریم: 4H
 
-قیمت فعلی طلا را در نظر بگیر.
-
-خروجی دقیقا با این بخش ها باشد:
+خروجی دقیقا با این بخش‌ها باشد:
 
 📊 تحلیل XAUUSD
 
@@ -44,73 +39,95 @@ def get_ai_analysis():
 
 📈 روند بازار:
 
-📌 حمایت های مهم:
-(عددهای واقعی نزدیک قیمت فعلی)
+📌 حمایت‌های مهم:
+(قیمت‌های واقعی و نزدیک به قیمت فعلی طلا بده)
 
-📌 مقاومت های مهم:
-(عددهای واقعی نزدیک قیمت فعلی)
+📌 مقاومت‌های مهم:
+(قیمت‌های واقعی و نزدیک به قیمت فعلی طلا بده)
 
 🧠 تحلیل تکنیکال:
-(حداقل چند خط توضیح)
+(ساختار بازار، روند، نقدینگی، شکست‌ها و مناطق مهم)
 
-🔎 سناریوهای احتمالی:
+🔎 سناریوها:
 
-🟢 سناریوی صعودی:
+🟢 سناریوی صعود:
+توضیح بده
 
-🔴 سناریوی نزولی:
+🔴 سناریوی نزول:
+توضیح بده
 
 ⚠️ جمع بندی:
+خلاصه تحلیل
 
-در آخر فقط این را اضافه کن:
-
-@afinace - ai
+از دادن عددهای قدیمی و غیرواقعی خودداری کن.
+سیگنال خرید یا فروش قطعی نده.
 """
 
     data = {
-        "model": "google/gemini-2.0-flash-exp:free",
+        "model": MODEL,
         "messages": [
             {
                 "role": "user",
                 "content": prompt
             }
         ],
-        "max_tokens": 1200,
-        "temperature": 0.5
+        "max_tokens": 1800,
+        "temperature": 0.4
     }
 
 
-    response = requests.post(
-        url,
-        headers=headers,
-        json=data,
-        timeout=60
-    )
+    try:
+        response = requests.post(
+            url,
+            headers=headers,
+            json=data,
+            timeout=60
+        )
+
+        result = response.json()
+
+        if "choices" in result:
+            return result["choices"][0]["message"]["content"]
+
+        return "❌ خطای OpenRouter:\n" + str(result)
+
+    except Exception as e:
+        return "❌ خطای اتصال:\n" + str(e)
 
 
-    result = response.json()
-
-    if "choices" in result:
-        return result["choices"][0]["message"]["content"]
-
-    else:
-        return "خطای OpenRouter:\n" + str(result)
-
-
-
-# =========================
-# ارسال تلگرام
-# =========================
 
 async def send_analysis():
 
-    bot = Bot(token=BOT_TOKEN)
+    if not BOT_TOKEN:
+        print("BOT_TOKEN خالی است")
+        return
 
-    text = get_ai_analysis()
+    if not CHAT_ID:
+        print("CHAT_ID خالی است")
+        return
+
+
+    bot = Bot(
+        token=BOT_TOKEN.strip()
+    )
+
+
+    analysis = get_ai_analysis()
+
+
+    message = f"""
+{analysis}
+
+━━━━━━━━━━━━━━
+@afinace - ai
+"""
+
 
     await bot.send_message(
-        chat_id=CHAT_ID,
-        text=text
+        chat_id=str(CHAT_ID).strip(),
+        text=message
     )
+
 
 
 if __name__ == "__main__":
