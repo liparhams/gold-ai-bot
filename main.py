@@ -1,6 +1,8 @@
 import asyncio
 
+
 from telegram import Bot
+
 
 from config import (
     BOT_TOKEN,
@@ -8,9 +10,14 @@ from config import (
     TIMEFRAMES
 )
 
+
+
 from market import get_market
+
 from chart import create_chart
+
 from analysis import ai_analysis
+
 from news import get_today_news
 
 
@@ -25,15 +32,22 @@ MAX_CAPTION = 1000
 
 
 
+
 async def send_bot():
 
 
-    for name, tf in TIMEFRAMES.items():
+
+    for name, interval in TIMEFRAMES.items():
+
 
         try:
 
 
-            df = get_market(tf)
+
+            df = get_market(
+                interval
+            )
+
 
 
             image = create_chart(
@@ -42,28 +56,41 @@ async def send_bot():
             )
 
 
-            analysis = ai_analysis(
+
+            text = ai_analysis(
+
                 df,
+
                 name
+
             )
 
 
+
             caption = f"""
+
 📊 XAUUSD AI
 
-⏱ تایم فریم: {name}
+
+⏱ تایم فریم:
+{name}
 
 
-{analysis}
+{text}
+
 """
 
 
 
-            with open(image, "rb") as photo:
+            with open(
+                image,
+                "rb"
+            ) as photo:
 
 
 
                 if len(caption) <= MAX_CAPTION:
+
 
 
                     await bot.send_photo(
@@ -80,11 +107,6 @@ async def send_bot():
                 else:
 
 
-                    first_part = caption[:MAX_CAPTION]
-
-
-                    second_part = caption[MAX_CAPTION:]
-
 
                     await bot.send_photo(
 
@@ -92,13 +114,12 @@ async def send_bot():
 
                         photo=photo,
 
-                        caption=first_part
+                        caption=
+                        caption[:MAX_CAPTION]
 
                     )
 
 
-
-                    # ادامه تحلیل
 
                     await bot.send_message(
 
@@ -107,13 +128,14 @@ async def send_bot():
                         text=
                         "📊 ادامه تحلیل:\n\n"
                         +
-                        second_part[:3000]
+                        caption[MAX_CAPTION:4000]
 
                     )
 
 
 
         except Exception as e:
+
 
 
             await bot.send_message(
@@ -128,34 +150,28 @@ async def send_bot():
 
 
 
-    # اخبار فقط یک بار
 
     try:
 
-
-        news = get_today_news()
 
 
         await bot.send_message(
 
             chat_id=CHAT_ID,
 
-            text=news[:3000]
+            text=get_today_news()
 
         )
+
 
 
     except Exception as e:
 
 
-        await bot.send_message(
 
-            chat_id=CHAT_ID,
+        print(e)
 
-            text=
-            f"❌ خطای اخبار\n{e}"
 
-        )
 
 
 
