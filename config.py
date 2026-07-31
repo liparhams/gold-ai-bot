@@ -1,9 +1,16 @@
-# config.py
+import os
 
-BOT_TOKEN = "توکن ربات تلگرام"
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "").strip()
+CHAT_ID = os.environ.get("CHAT_ID", "").strip()
+OPENROUTER_API_KEY = os.environ.get("OPENROUTER_API_KEY", "").strip()
 
-CHAT_ID = "آیدی چت یا کانال"
+MODEL = "openai/gpt-4o-mini"
 
-OPENROUTER_API_KEY = "کلید API اوپن روتر"
+if not BOT_TOKEN:
+    raise Exception("BOT_TOKEN خالی است")
 
-MODEL = "google/gemini-2.5-flash"
+if not CHAT_ID:
+    raise Exception("CHAT_ID خالی است")
+
+if not OPENROUTER_API_KEY:
+    raise Exception("OPENROUTER_API_KEY خالی است")
