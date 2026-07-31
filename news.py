@@ -2,21 +2,24 @@ import requests
 from datetime import datetime, timedelta
 
 
-IRAN_OFFSET = timedelta(hours=3, minutes=30)
+IRAN_TIME = timedelta(
+    hours=3,
+    minutes=30
+)
 
 
-def iran_time(utc_time):
+
+def convert_iran_time(date):
 
     try:
 
-        dt = datetime.strptime(
-            utc_time,
-            "%Y-%m-%dT%H:%M:%S"
+        dt = datetime.fromisoformat(
+            date.replace("Z","")
         )
 
-        iran = dt + IRAN_OFFSET
+        dt = dt + IRAN_TIME
 
-        return iran.strftime(
+        return dt.strftime(
             "%H:%M"
         )
 
@@ -28,7 +31,9 @@ def iran_time(utc_time):
 
 def get_today_news():
 
+
     try:
+
 
         url = (
             "https://nfs.faireconomy.media/"
@@ -42,7 +47,7 @@ def get_today_news():
         )
 
 
-        events = r.json()
+        data = r.json()
 
 
 
@@ -52,70 +57,82 @@ def get_today_news():
 
 
 
-        news = []
+        result = []
 
 
 
-        for e in events:
+        for item in data:
 
 
             if (
-                e.get("country") == "USD"
-                and e.get("impact") == "High"
-                and today in e.get("date","")
+
+                item.get("country") == "USD"
+
+                and item.get("impact") == "High"
+
+                and today in item.get("date","")
+
             ):
 
-
-                news.append(e)
-
+                result.append(item)
 
 
-        if not news:
+
+
+        if not result:
+
 
             return """
+
 📰 اخبار مهم USD امروز
 
 ✅ امروز خبر قرمز مهم آمریکا وجود ندارد.
+
 """
 
 
 
         text = """
+
 📰 اخبار قرمز USD امروز
 
 """
 
 
 
-        for e in news:
-
-
-            time = iran_time(
-                e.get("date","")
-            )
+        for n in result:
 
 
             text += f"""
-🔴 {e.get('title','')}
 
-⏰ ساعت ایران: {time}
+🔴 {n.get('title','')}
 
-📊 پیش‌بینی: {e.get('forecast','-')}
-📌 قبلی: {e.get('previous','-')}
+⏰ ساعت ایران:
+{convert_iran_time(n.get('date',''))}
+
+
+📊 Forecast:
+{n.get('forecast','-')}
+
+📌 Previous:
+{n.get('previous','-')}
+
 
 """
 
 
 
-        return text
+        return text[:3000]
 
 
 
-    except Exception as ex:
+    except Exception:
 
 
-        return f"""
-📰 اخبار USD
+        return """
 
-❌ خطا در دریافت تقویم اقتصادی
+📰 اخبار USD امروز
+
+❌ تقویم اقتصادی در دسترس نیست.
+
 """
