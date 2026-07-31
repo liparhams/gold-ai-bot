@@ -2,7 +2,9 @@ import os
 import mplfinance as mpf
 
 
+
 def create_chart(df, timeframe):
+
 
     os.makedirs(
         "charts",
@@ -10,7 +12,9 @@ def create_chart(df, timeframe):
     )
 
 
+
     data = df.copy()
+
 
 
     data["EMA50"] = (
@@ -18,6 +22,7 @@ def create_chart(df, timeframe):
         .ewm(span=50)
         .mean()
     )
+
 
 
     data["EMA200"] = (
@@ -28,7 +33,7 @@ def create_chart(df, timeframe):
 
 
 
-    file = (
+    filename = (
         "charts/"
         + timeframe.replace(" ","_")
         + ".png"
@@ -36,16 +41,15 @@ def create_chart(df, timeframe):
 
 
 
-    plots = [
+    addplots = [
 
         mpf.make_addplot(
-            data["EMA50"],
-            color="blue"
+            data["EMA50"]
         ),
 
+
         mpf.make_addplot(
-            data["EMA200"],
-            color="red"
+            data["EMA200"]
         )
 
     ]
@@ -60,18 +64,19 @@ def create_chart(df, timeframe):
 
         style="charles",
 
-        addplot=plots,
+        addplot=addplots,
 
-        title=f"XAUUSD AI {timeframe}",
-
-        volume=False,
+        title=
+        f"XAUUSD AI - {timeframe}",
 
         figsize=(12,6),
 
-        savefig=file
+        volume=False,
+
+        savefig=filename
 
     )
 
 
 
-    return file
+    return filename
