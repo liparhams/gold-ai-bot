@@ -13,10 +13,19 @@ MARKET_API_KEY = os.environ.get(
 )
 
 
+# مدل های پشتیبان
 MODELS = [
+
+    "google/gemini-2.0-flash-exp:free",
+
+    "meta-llama/llama-3.1-8b-instruct:free",
+
     "qwen/qwen-2.5-7b-instruct:free",
-    "google/gemma-3-4b-it:free",
-    "mistralai/mistral-7b-instruct:free"
+
+    "mistralai/mistral-7b-instruct:free",
+
+    "google/gemma-3-4b-it:free"
+
 ]
 
 
@@ -24,13 +33,14 @@ SYMBOL = "XAU/USD"
 
 
 TIMEFRAMES = {
+
     "30 دقیقه": "30min",
+
     "4 ساعته": "4h",
+
     "روزانه": "1day"
+
 }
-
-
-CANDLE_COUNT = 150
 
 
 SIGNATURE = "\n\n@afinace - ai"
