@@ -1,6 +1,9 @@
 import requests
 
-from config import OPENROUTER_API_KEY, AI_MODELS
+from config import (
+    OPENROUTER_API_KEY,
+    AI_MODELS
+)
 
 
 
@@ -9,8 +12,10 @@ def ask_ai(prompt):
 
     headers = {
 
+
         "Authorization":
         f"Bearer {OPENROUTER_API_KEY}",
+
 
         "Content-Type":
         "application/json"
@@ -25,46 +30,55 @@ def ask_ai(prompt):
         try:
 
 
-            print(
-                "Trying:",
-                model
-            )
+            response = requests.post(
 
-
-            r = requests.post(
 
                 "https://openrouter.ai/api/v1/chat/completions",
 
+
                 headers=headers,
+
 
                 json={
 
+
                     "model":model,
+
 
                     "messages":[
 
+
                         {
+
 
                             "role":"system",
 
+
                             "content":
                             """
-تو یک تحلیلگر حرفه‌ای XAUUSD هستی.
-فقط از داده کندل استفاده کن.
-عدد خیالی نساز.
-سلام و مقدمه ننویس.
-تحلیل کوتاه و کاربردی بده.
+تو تحلیلگر حرفه‌ای XAUUSD هستی.
+
+قوانین:
+- فقط از داده کندل استفاده کن
+- عدد خیالی نساز
+- تحلیل کوتاه و حرفه‌ای باشد
+- تکرار نکن
+- سیگنال قطعی خرید یا فروش نده
 """
 
                         },
 
+
                         {
 
+
                             "role":"user",
+
 
                             "content":prompt
 
                         }
+
 
                     ],
 
@@ -74,14 +88,17 @@ def ask_ai(prompt):
 
                     "max_tokens":1200
 
+
                 },
+
 
                 timeout=90
 
             )
 
 
-            data = r.json()
+
+            data=response.json()
 
 
 
@@ -96,15 +113,8 @@ def ask_ai(prompt):
 
 
 
-            print(
-                "Model failed:",
-                model,
-                data
-            )
-
-
-
         except Exception as e:
+
 
             print(
                 model,
@@ -119,42 +129,58 @@ def ask_ai(prompt):
 
 
 
+
+
 def ai_analysis(df,timeframe):
 
 
-    candles = df.tail(80).to_string()
+    candles = (
+        df.tail(100)
+        .to_string()
+    )
 
 
 
     prompt=f"""
 
+
 تحلیل XAUUSD
+
 
 تایم فریم:
 {timeframe}
 
 
-داده کندل:
+داده:
 
 {candles}
 
 
 
-ساختار خروجی:
+ساختار:
+
+
 
 📊 تحلیل XAUUSD
 
+
 📈 روند:
+
 
 💰 قیمت آخر:
 
+
 📌 حمایت:
-(حداکثر 3 سطح)
+سه سطح مهم
+
 
 📌 مقاومت:
-(حداکثر 3 سطح)
+سه سطح مهم
+
+
 
 🧠 Smart Money:
+
 
 Market Structure:
 
@@ -163,6 +189,7 @@ Liquidity:
 Order Block:
 
 BOS:
+
 
 
 🔎 سناریو صعود:
@@ -174,14 +201,14 @@ BOS:
 ⚠️ جمع بندی:
 
 
+
 قوانین:
 
-- حداکثر 350 کلمه
-- فقط قیمت‌های داخل داده
-- اگر چیزی مشخص نیست بگو نامشخص
-- سیگنال قطعی نده
-
+حداکثر 450 کلمه.
+جمله کوتاه.
+اگر سطح مشخص نیست بنویس نامشخص.
 """
+
 
 
     return ask_ai(prompt)
