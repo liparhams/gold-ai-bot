@@ -1,46 +1,95 @@
 import os
 
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-CHAT_ID = os.environ.get("CHAT_ID")
+# Telegram
 
-OPENROUTER_API_KEY = os.environ.get(
+BOT_TOKEN = os.getenv(
+    "BOT_TOKEN"
+)
+
+CHAT_ID = os.getenv(
+    "CHAT_ID"
+)
+
+
+
+# AI APIs
+
+OPENROUTER_API_KEY = os.getenv(
     "OPENROUTER_API_KEY"
 )
 
-MARKET_API_KEY = os.environ.get(
+
+# اگر بعداً API مستقیم گرفتی اینجا اضافه می‌کنیم
+
+GEMINI_API_KEY = os.getenv(
+    "GEMINI_API_KEY"
+)
+
+
+GROQ_API_KEY = os.getenv(
+    "GROQ_API_KEY"
+)
+
+
+CEREBRAS_API_KEY = os.getenv(
+    "CEREBRAS_API_KEY"
+)
+
+
+
+# Market Data
+
+MARKET_API_KEY = os.getenv(
     "MARKET_API_KEY"
 )
 
 
-# مدل های پشتیبان
-MODELS = [
 
-    "google/gemini-2.0-flash-exp:free",
+# AI Backup order
 
-    "meta-llama/llama-3.1-8b-instruct:free",
+AI_MODELS = [
 
-    "qwen/qwen-2.5-7b-instruct:free",
+    # OpenRouter
+    "meta-llama/llama-3.1-8b-instruct",
 
-    "mistralai/mistral-7b-instruct:free",
+    "google/gemini-2.0-flash-001",
 
-    "google/gemma-3-4b-it:free"
+    "qwen/qwen-2.5-7b-instruct",
+
+    "mistralai/mistral-7b-instruct"
 
 ]
 
 
+
+# Symbol
+
 SYMBOL = "XAU/USD"
 
 
+
+# Timeframes
+
 TIMEFRAMES = {
 
-    "30 دقیقه": "30min",
+    "30 دقیقه":
+    "30min",
 
-    "4 ساعته": "4h",
+    "4 ساعته":
+    "4h",
 
-    "روزانه": "1day"
+    "روزانه":
+    "1day"
 
 }
 
 
-SIGNATURE = "\n\n@afinace - ai"
+
+# Telegram signature
+
+SIGNATURE = """
+
+@afinace - ai
+
+"""
