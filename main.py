@@ -3,15 +3,24 @@ import requests
 import asyncio
 from telegram import Bot
 
-# Telegram
+
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
-
-# OpenRouter
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 
+if not BOT_TOKEN:
+    raise Exception("BOT_TOKEN خالی است")
+
+if not CHAT_ID:
+    raise Exception("CHAT_ID خالی است")
+
+if not OPENROUTER_API_KEY:
+    raise Exception("OPENROUTER_API_KEY خالی است")
+
+
 def create_analysis():
+
     url = "https://openrouter.ai/api/v1/chat/completions"
 
     headers = {
@@ -21,38 +30,42 @@ def create_analysis():
 
     data = {
         "model": "meta-llama/llama-3.1-8b-instruct",
+        "max_tokens": 300,
         "messages": [
+            {
+                "role": "system",
+                "content": "تو تحلیلگر XAUUSD هستی. فقط کوتاه و فارسی جواب بده."
+            },
             {
                 "role": "user",
                 "content": """
-برای XAUUSD یک تحلیل کوتاه بده.
+یک تحلیل کوتاه طلا XAUUSD بده.
 
-فرمت حتما این باشد:
+قالب دقیقا:
 
 📊 نتیجه:
-(روند کلی)
+یک خط درباره روند
 
-🟢 یا 🔴 نظر:
-(خرید یا فروش)
+🟢 نظر:
+خرید یا فروش یا صبر + دلیل کوتاه
 
 📌 حمایت:
-(سطوح مهم)
+سطوح مهم
 
 📌 مقاومت:
-(سطوح مهم)
+سطوح مهم
 
 ⚠️ ریسک:
-(یک خط)
+یک خط کوتاه
 
-حداکثر ۱۰ خط بنویس.
-
-آخر پیام دقیقا اضافه کن:
-
-@afinace - ai
+فقط همین بخش ها.
+حداکثر ۱۰ خط.
+هیچ متن انگلیسی یا توضیح اضافه ننویس.
 """
             }
         ]
     }
+
 
     response = requests.post(
         url,
@@ -62,20 +75,17 @@ def create_analysis():
 
     result = response.json()
 
-    print(result)
+    if "choices" not in result:
+        return "خطای OpenRouter:\n" + str(result)
 
-    return result["choices"][0]["message"]["content"]
+
+    text = result["choices"][0]["message"]["content"]
+
+    return text + "\n\n@afinace - ai"
+
 
 
 async def send_analysis():
-
-    if not BOT_TOKEN:
-        print("BOT_TOKEN خالی است")
-        return
-
-    if not CHAT_ID:
-        print("CHAT_ID خالی است")
-        return
 
     analysis = create_analysis()
 
@@ -85,6 +95,7 @@ async def send_analysis():
         chat_id=CHAT_ID,
         text=analysis
     )
+
 
 
 if __name__ == "__main__":
