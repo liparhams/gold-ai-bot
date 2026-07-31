@@ -1,17 +1,16 @@
-import os
+# Telegram Bot
+BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN"
+
+# Telegram Channel / Group ID
+CHAT_ID = "YOUR_CHAT_ID"
 
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
+# OpenRouter AI
+OPENROUTER_API_KEY = "YOUR_OPENROUTER_API_KEY"
 
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-
-MODEL = os.getenv(
-    "MODEL",
-    "google/gemini-2.5-flash"
-)
-
-MARKET_API_KEY = os.getenv("MARKET_API_KEY")
+# مدل تحلیل
+MODEL = "google/gemini-2.5-flash"
 
 
-OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
+# Market Data API (Twelve Data)
+MARKET_API_KEY = "YOUR_TWELVE_DATA_API_KEY"
