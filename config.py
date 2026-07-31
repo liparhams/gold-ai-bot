@@ -1,7 +1,5 @@
-BOT_TOKEN = "اینجا توکن ربات تلگرام"
+BOT_TOKEN = "توکن ربات تلگرام را اینجا بگذار"
 
-CHAT_ID = "اینجا آیدی مقصد"
-# مثال کانال:
-# CHAT_ID = "-1001234567890"
+CHAT_ID = "-100xxxxxxxxxx"
 
-OPENROUTER_API_KEY = "اینجا api اوپن روتر"
+OPENROUTER_API_KEY = "sk-or-v1-xxxxxxxxxxxxxxxx"
