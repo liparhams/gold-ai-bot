@@ -1,7 +1,5 @@
 python-telegram-bot==21.6
 requests
 pandas
-numpy
-matplotlib
 mplfinance
-pillow
+matplotlib
