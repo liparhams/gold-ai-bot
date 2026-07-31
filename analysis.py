@@ -1,19 +1,56 @@
 import requests
-
-from config import (
-    OPENROUTER_API_KEY,
-    MODELS
-)
-
+from config import OPENROUTER_API_KEY
 from news import get_today_news
 
 
 
+def get_available_models():
+
+    try:
+
+        r = requests.get(
+
+            "https://openrouter.ai/api/v1/models",
+
+            headers={
+                "Authorization":
+                f"Bearer {OPENROUTER_API_KEY}"
+            },
+
+            timeout=30
+
+        )
+
+
+        data = r.json()
+
+
+        models = []
+
+
+        for m in data.get("data", []):
+
+            name = m.get("id")
+
+
+            if name:
+
+                models.append(name)
+
+
+
+        return models[:30]
+
+
+    except Exception:
+
+        return []
+
+
+
+
+
 def ask_ai(prompt):
-
-    if not OPENROUTER_API_KEY:
-
-        return "❌ OpenRouter API Key پیدا نشد."
 
 
     headers = {
@@ -34,19 +71,57 @@ def ask_ai(prompt):
 
 
 
-    for model in MODELS:
+    backup_models = [
+
+        "meta-llama/llama-3.1-8b-instruct",
+
+        "google/gemini-2.0-flash-001",
+
+        "qwen/qwen-2.5-7b-instruct",
+
+        "mistralai/mistral-7b-instruct"
+
+    ]
+
+
+
+    # مدل های جدید OpenRouter
+
+    live_models = get_available_models()
+
+
+
+    models = backup_models + live_models
+
+
+
+    checked = set()
+
+
+
+    for model in models:
+
+
+        if model in checked:
+
+            continue
+
+
+        checked.add(model)
+
 
 
         try:
 
 
             print(
-                "Trying model:",
+                "Trying:",
                 model
             )
 
 
-            response = requests.post(
+
+            r = requests.post(
 
                 "https://openrouter.ai/api/v1/chat/completions",
 
@@ -64,7 +139,7 @@ def ask_ai(prompt):
                             "system",
 
                             "content":
-                            "You are a professional XAUUSD forex analyst."
+                            "You are expert XAUUSD forex analyst."
 
                         },
 
@@ -88,12 +163,13 @@ def ask_ai(prompt):
 
                 },
 
-                timeout=120
+                timeout=90
 
             )
 
 
-            data = response.json()
+
+            data = r.json()
 
 
 
@@ -101,7 +177,7 @@ def ask_ai(prompt):
 
 
                 print(
-                    "Working model:",
+                    "SUCCESS:",
                     model
                 )
 
@@ -114,32 +190,22 @@ def ask_ai(prompt):
 
 
 
-            else:
-
-                print(
-                    "Model unavailable:",
-                    model,
-                    data
-                )
-
-
-
         except Exception as e:
 
 
             print(
-                "Model error:",
+                "FAILED:",
                 model,
                 e
             )
 
 
 
-    return """
-❌ هیچ مدل AI فعال پیدا نشد.
+    return (
+        "❌ تمام موتورهای AI "
+        "در دسترس نیستند."
+    )
 
-OpenRouter مدل‌های رایگان را تغییر داده یا محدود کرده است.
-"""
 
 
 
@@ -151,54 +217,43 @@ def ai_analysis(df, timeframe):
     candles = df.tail(120).to_string()
 
 
-
     news = get_today_news()
 
 
 
     prompt = f"""
 
-تحلیل حرفه‌ای XAUUSD انجام بده.
+تحلیل حرفه‌ای XAUUSD بده.
 
 
 تایم فریم:
 {timeframe}
 
 
-داده کندل:
+کندل‌ها:
 
 {candles}
 
 
-اخبار مهم امروز USD:
+اخبار امروز:
 
 {news}
 
 
 
-خروجی فقط با این ساختار:
-
+قالب:
 
 📊 تحلیل XAUUSD
 
-
 ⏱ تایم فریم:
 
-
 📈 روند بازار:
-(Trend + Market Structure)
 
+💰 قیمت:
 
-💰 وضعیت قیمت:
-(قیمت آخر + موقعیت نسبت به ساختار)
+📌 حمایت‌ها:
 
-
-📌 حمایت‌های مهم:
-(حداقل 3 سطح واقعی از داده)
-
-
-📌 مقاومت‌های مهم:
-(حداقل 3 سطح واقعی از داده)
+📌 مقاومت‌ها:
 
 
 🧠 Smart Money:
@@ -216,8 +271,7 @@ Trend:
 🔴 سناریو نزول:
 
 
-📰 اخبار مهم امروز:
-(فقط خبرهای مهم قرمز آمریکا)
+📰 اخبار مهم USD:
 
 
 ⚠️ جمع بندی:
@@ -226,10 +280,9 @@ Trend:
 قوانین:
 
 - عدد خیالی نساز
-- قیمت از داده کندل استخراج شود
-- سلام و مقدمه ننویس
-- سیگنال قطعی خرید یا فروش نده
-- حرفه‌ای و کوتاه ولی کامل بنویس
+- فقط از داده استفاده کن
+- سیگنال قطعی نده
+- مقدمه ننویس
 
 """
 
