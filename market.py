@@ -1,6 +1,7 @@
 import requests
+import pandas as pd
 
-from config import MARKET_API_KEY
+from config import MARKET_API_KEY, SYMBOL
 
 
 def get_market(interval):
@@ -9,15 +10,10 @@ def get_market(interval):
 
 
     params = {
-
-        "symbol": "XAU/USD",
-
+        "symbol": SYMBOL,
         "interval": interval,
-
-        "outputsize": 100,
-
+        "outputsize": 120,
         "apikey": MARKET_API_KEY
-
     }
 
 
@@ -32,8 +28,28 @@ def get_market(interval):
 
 
     if "values" not in data:
-
         raise Exception(data)
 
 
-    return data["values"]
+    df = pd.DataFrame(data["values"])
+
+
+    df = df.rename(
+        columns={
+            "datetime":"time",
+            "open":"open",
+            "high":"high",
+            "low":"low",
+            "close":"close"
+        }
+    )
+
+
+    for c in ["open","high","low","close"]:
+        df[c] = df[c].astype(float)
+
+
+    df = df.iloc[::-1]
+
+
+    return df
