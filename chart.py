@@ -1,55 +1,69 @@
-import mplfinance as mpf
 import pandas as pd
+import mplfinance as mpf
 
 
-def create_chart(df, name):
-
-    file = f"{name}.png"
+def create_chart(data,name):
 
 
-    chart = df.copy()
+    df=pd.DataFrame(data)
 
 
-    # تبدیل زمان به تاریخ
-    chart["time"] = pd.to_datetime(
-        chart["time"]
+    df["time"]=pd.to_datetime(
+        df["time"]
     )
 
 
-    # قرار دادن زمان به عنوان index
-    chart = chart.set_index(
+    df=df.set_index(
         "time"
     )
 
 
-    # مرتب سازی
-    chart = chart.sort_index()
+    df=df.sort_index()
 
 
-    # فقط ستون های لازم
-    chart = chart[
-        [
-            "open",
-            "high",
-            "low",
-            "close"
-        ]
-    ]
+
+    df["EMA50"]=df["close"].ewm(
+        span=50
+    ).mean()
+
+
+
+    df["EMA200"]=df["close"].ewm(
+        span=200
+    ).mean()
+
+
+
+    file=f"{name}.png"
+
 
 
     mpf.plot(
-        chart,
+
+        df,
+
         type="candle",
+
         style="charles",
-        title=f"XAUUSD {name}",
+
+        addplot=[
+
+            mpf.make_addplot(
+                df["EMA50"]
+            ),
+
+            mpf.make_addplot(
+                df["EMA200"]
+            )
+
+        ],
+
         figsize=(12,6),
-        volume=False,
-        savefig=dict(
-            fname=file,
-            dpi=150,
-            bbox_inches="tight"
-        )
+
+        savefig=file
+
     )
+
 
 
     return file
