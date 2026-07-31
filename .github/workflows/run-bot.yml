@@ -1,18 +1,16 @@
 name: Gold AI Bot
 
-
 on:
-
 
   schedule:
 
+    # هر روز کاری ساعت 15:30 ایران
+    # معادل 12:00 UTC
 
     - cron: "0 12 * * 1-5"
 
 
-
   workflow_dispatch:
-
 
 
 
@@ -23,7 +21,6 @@ jobs:
 
 
     runs-on: ubuntu-latest
-
 
 
     steps:
@@ -45,15 +42,16 @@ jobs:
 
 
 
-      - name: Install
+      - name: Install packages
 
-        run: |
+        run:
 
           pip install -r requirements.txt
 
 
 
-      - name: Run Bot
+      - name: Run Gold AI Bot
+
 
         env:
 
@@ -68,5 +66,6 @@ jobs:
 
 
         run:
+
 
           python main.py
