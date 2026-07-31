@@ -2,39 +2,78 @@ import requests
 from config import MARKET_API_KEY
 
 
-
 def get_market(timeframe):
 
+    if not MARKET_API_KEY:
+        raise Exception(
+            "❌ MARKET_API_KEY در Secret یا config وجود ندارد"
+        )
 
-    url="https://api.twelvedata.com/time_series"
+
+    url = "https://api.twelvedata.com/time_series"
 
 
-    params={
+    params = {
 
-        "symbol":"XAU/USD",
+        "symbol": "XAU/USD",
 
-        "interval":timeframe,
+        "interval": timeframe,
 
-        "outputsize":100,
+        "outputsize": 200,
 
-        "apikey":MARKET_API_KEY
+        "apikey": MARKET_API_KEY
 
     }
 
 
-    r=requests.get(
-        url,
-        params=params,
-        timeout=30
-    )
+    try:
+
+        response = requests.get(
+            url,
+            params=params,
+            timeout=30
+        )
 
 
-    data=r.json()
+        data = response.json()
 
 
-    if "values" not in data:
 
-        raise Exception(data)
+        if "values" not in data:
+
+            raise Exception(
+                f"Twelve Data Error: {data}"
+            )
 
 
-    return data["values"]
+
+        candles = []
+
+
+        for item in reversed(data["values"]):
+
+            candles.append({
+
+                "datetime": item["datetime"],
+
+                "open": float(item["open"]),
+
+                "high": float(item["high"]),
+
+                "low": float(item["low"]),
+
+                "close": float(item["close"])
+
+            })
+
+
+
+        return candles
+
+
+
+    except requests.exceptions.RequestException as e:
+
+        raise Exception(
+            f"خطای اتصال به Market API: {e}"
+        )
