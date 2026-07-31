@@ -1,33 +1,32 @@
 import matplotlib.pyplot as plt
-import pandas as pd
 
 from ta.trend import EMAIndicator
 from ta.momentum import RSIIndicator
 
 
-def create_chart(df, timeframe):
+
+def create_chart(df, name):
 
     df = df.copy()
 
 
-    # EMA
-    df["ema50"] = EMAIndicator(
-        close=df["close"],
+    df["EMA50"] = EMAIndicator(
+        df["close"],
         window=50
     ).ema_indicator()
 
 
-    df["ema200"] = EMAIndicator(
-        close=df["close"],
+    df["EMA200"] = EMAIndicator(
+        df["close"],
         window=200
     ).ema_indicator()
 
 
-    # RSI
-    df["rsi"] = RSIIndicator(
-        close=df["close"],
+    df["RSI"] = RSIIndicator(
+        df["close"],
         window=14
     ).rsi()
+
 
 
     plt.figure(
@@ -35,70 +34,52 @@ def create_chart(df, timeframe):
     )
 
 
-    # کندل ساده
     plt.plot(
         df.index,
         df["close"],
-        linewidth=1,
         label="XAUUSD"
     )
 
 
     plt.plot(
         df.index,
-        df["ema50"],
-        label="EMA 50"
+        df["EMA50"],
+        label="EMA50"
     )
 
 
     plt.plot(
         df.index,
-        df["ema200"],
-        label="EMA 200"
+        df["EMA200"],
+        label="EMA200"
     )
 
 
     plt.title(
-        f"XAUUSD {timeframe}"
+        "XAUUSD " + name
     )
-
-
-    plt.xlabel(
-        "Time"
-    )
-
-
-    plt.ylabel(
-        "Price"
-    )
-
-
-    plt.legend()
 
 
     plt.grid()
 
+    plt.legend()
 
-    file_name = (
-        "chart_"
-        + timeframe.replace(
-            " ",
-            "_"
-        )
+
+    file = (
+        name
+        .replace(" ","_")
         + ".png"
     )
 
 
-    plt.tight_layout()
-
-
     plt.savefig(
-        file_name,
-        dpi=200
+        file,
+        dpi=200,
+        bbox_inches="tight"
     )
 
 
     plt.close()
 
 
-    return file_name
+    return file
