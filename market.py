@@ -6,6 +6,7 @@ def get_gold_data():
 
     url = "https://api.twelvedata.com/time_series"
 
+
     params = {
         "symbol": "XAU/USD",
         "interval": "4h",
@@ -13,32 +14,42 @@ def get_gold_data():
         "apikey": MARKET_API_KEY
     }
 
-    response = requests.get(
-        url,
-        params=params,
-        timeout=30
-    )
 
-    data = response.json()
+    try:
 
-    if "values" not in data:
-        return f"خطای دریافت قیمت: {data}"
+        r = requests.get(
+            url,
+            params=params,
+            timeout=30
+        )
 
-    candles = data["values"]
 
-    latest = candles[0]
+        data = r.json()
 
-    result = f"""
-XAUUSD 4H DATA
 
-Current candle:
-Open: {latest['open']}
-High: {latest['high']}
-Low: {latest['low']}
-Close: {latest['close']}
+        if "values" not in data:
+            return f"Market API Error: {data}"
 
-Last candles:
-{candles[:10]}
-"""
 
-    return result
+        candles = data["values"]
+
+
+        text = "XAUUSD 4H candles:\n\n"
+
+
+        for c in candles[:10]:
+
+            text += (
+                f"Open: {c['open']} "
+                f"High: {c['high']} "
+                f"Low: {c['low']} "
+                f"Close: {c['close']}\n"
+            )
+
+
+        return text
+
+
+    except Exception as e:
+
+        return f"Market connection error: {e}"
