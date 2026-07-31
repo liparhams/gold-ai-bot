@@ -2,69 +2,76 @@ import asyncio
 
 from telegram import Bot
 
-
-from config import (
-    BOT_TOKEN,
-    CHAT_ID,
-    TIMEFRAMES
-)
-
+from config import BOT_TOKEN,CHAT_ID
 
 from market import get_market
+
 from chart import create_chart
-from analysis import get_analysis
+
+from analysis import ai_analysis
 
 
 
-bot = Bot(
-    token=BOT_TOKEN
+bot=Bot(
+    BOT_TOKEN
 )
 
 
 
-async def send_analysis():
+async def send():
 
 
-    for interval, name in TIMEFRAMES:
+    for tf,name in [
+
+        ("30min","30 دقیقه"),
+
+        ("4h","4 ساعته"),
+
+        ("1day","روزانه")
+
+    ]:
 
 
         try:
 
-            print("Getting", name)
+
+            data=get_market(tf)
 
 
-            df = get_market(interval)
 
-
-            image = create_chart(
-                df,
-                interval
+            img=create_chart(
+                data,
+                tf
             )
 
 
-            text = get_analysis(
-                df,
+
+            text=ai_analysis(
+                data,
                 name
             )
 
 
-            caption = (
-                f"📊 XAUUSD AI\n\n"
-                f"⏱ تایم فریم: {name}\n\n"
-                + text
+
+            await bot.send_photo(
+
+                CHAT_ID,
+
+                open(img,"rb"),
+
+                caption=
+                f"📊 XAUUSD AI\n\n⏱ {name}"
+
             )
 
 
-            if len(caption) > 1000:
 
-                caption = caption[:950] + "\n\n..."
+            await bot.send_message(
 
+                CHAT_ID,
 
+                text
 
-            await bot.send_photo(
-                chat_id=CHAT_ID,
-                photo=open(image,"rb"),
-                caption=caption
             )
 
 
@@ -73,14 +80,13 @@ async def send_analysis():
 
 
             await bot.send_message(
-                chat_id=CHAT_ID,
-                text=f"❌ خطا در {name}\n\n{e}"
+
+                CHAT_ID,
+
+                f"❌ خطا در {name}\n{e}"
+
             )
 
 
 
-if __name__ == "__main__":
-
-    asyncio.run(
-        send_analysis()
-    )
+asyncio.run(send())
