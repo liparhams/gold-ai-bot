@@ -1,25 +1,38 @@
 import os
 from dotenv import load_dotenv
 
+# خواندن متغیرهای محیطی
 load_dotenv()
 
-# Telegram
+
+# =========================
+# Telegram Settings
+# =========================
+
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
-# OpenRouter AI
+
+# =========================
+# OpenRouter Settings
+# =========================
+
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-# Model
+
+# مدل هوش مصنوعی
 MODEL = "meta-llama/llama-3.1-8b-instruct"
 
 
-# بررسی خطا
+# =========================
+# Check Settings
+# =========================
+
 if not BOT_TOKEN:
-    raise ValueError("BOT_TOKEN خالی است")
+    raise Exception("BOT_TOKEN خالی است")
 
 if not CHAT_ID:
-    raise ValueError("CHAT_ID خالی است")
+    raise Exception("CHAT_ID خالی است")
 
 if not OPENROUTER_API_KEY:
-    raise ValueError("OPENROUTER_API_KEY خالی است")
+    raise Exception("OPENROUTER_API_KEY خالی است")
