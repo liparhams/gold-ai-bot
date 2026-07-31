@@ -1,33 +1,30 @@
-import requests
 import asyncio
+import requests
 from telegram import Bot
-from config import BOT_TOKEN, CHAT_ID, OPENROUTER_API_KEY
 
-
-MODEL = "meta-llama/llama-3.1-8b-instruct"
+from config import BOT_TOKEN, CHAT_ID, OPENROUTER_API_KEY, MODEL
 
 
 def create_analysis():
 
     prompt = """
-تو یک تحلیلگر حرفه‌ای بازار طلا XAUUSD هستی.
+تو یک تحلیلگر حرفه‌ای XAUUSD هستی.
 
-یک تحلیل تکنیکال کوتاه ارائه بده.
+یک تحلیل تکنیکال کوتاه ولی حرفه‌ای بنویس.
 
 قوانین:
 - سیگنال قطعی خرید یا فروش نده.
-- فقط تحلیل بازار بده.
-- حمایت و مقاومت منطقی نزدیک قیمت فعلی طلا باشند.
-- عددهای قدیمی مثل 1600 یا 1700 نده.
-- خروجی بیشتر از 12 خط نباشد.
-- ساختار واضح داشته باشد.
+- قیمت‌های ساختگی تولید نکن.
+- اگر داده قیمت یا چارت نداری، واضح بگو.
+- حمایت و مقاومت را فقط در صورت داشتن اطلاعات واقعی اعلام کن.
+- تحلیل باید حدود 10 تا 15 خط باشد.
 
 فرمت:
 
 📊 تحلیل XAUUSD
 
 ⏱ تایم فریم:
-4H
+...
 
 📈 روند بازار:
 ...
@@ -44,6 +41,7 @@ def create_analysis():
 🔎 سناریوها:
 🟢 صعود:
 ...
+
 🔴 نزول:
 ...
 
@@ -53,14 +51,12 @@ def create_analysis():
 @afinace - ai
 """
 
-
     url = "https://openrouter.ai/api/v1/chat/completions"
 
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json"
     }
-
 
     data = {
         "model": MODEL,
@@ -70,10 +66,8 @@ def create_analysis():
                 "content": prompt
             }
         ],
-        "max_tokens": 800,
-        "temperature": 0.4
+        "max_tokens": 700
     }
-
 
     response = requests.post(
         url,
@@ -81,32 +75,28 @@ def create_analysis():
         json=data
     )
 
-
     result = response.json()
 
+    if "choices" not in result:
+        return f"خطای OpenRouter: {result}"
 
-    if "choices" in result:
-        return result["choices"][0]["message"]["content"]
-
-    else:
-        return f"خطای OpenRouter:\n{result}"
-
+    return result["choices"][0]["message"]["content"]
 
 
 async def send_analysis():
 
-    if not BOT_TOKEN:
-        print("BOT_TOKEN خالی است")
-        return
-
-    if not CHAT_ID:
-        print("CHAT_ID خالی است")
-        return
+    bot = Bot(BOT_TOKEN)
 
     analysis = create_analysis()
 
+    await bot.send_message(
+        chat_id=CHAT_ID,
+        text=analysis
+    )
 
-    bot = Bot(
+
+if __name__ == "__main__":
+    asyncio.run(send_analysis())    bot = Bot(
         token=BOT_TOKEN
     )
 
