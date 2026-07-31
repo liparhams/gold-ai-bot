@@ -16,62 +16,152 @@ bot = Bot(
 
 
 
+def split_message(text, limit=4000):
+
+    parts = []
+
+    while len(text) > limit:
+
+        index = text[:limit].rfind("\n")
+
+        if index == -1:
+            index = limit
+
+
+        parts.append(
+            text[:index]
+        )
+
+        text = text[index:]
+
+
+    if text:
+        parts.append(text)
+
+
+    return parts
+
+
+
+
 async def send_analysis():
 
 
-    frames = [
-        ("30min","30 دقیقه"),
-        ("4h","4 ساعته"),
-        ("1day","روزانه")
+    timeframes = [
+
+        ("30min", "30 دقیقه"),
+
+        ("4h", "4 ساعته"),
+
+        ("1day", "روزانه")
+
     ]
 
 
-    for tf, name in frames:
+
+    for tf, name in timeframes:
+
 
         try:
 
+
             print(
-                f"Getting {tf}"
+                f"Getting {name}"
             )
 
 
-            data = get_market(tf)
+            # گرفتن دیتا
 
-
-            chart = create_chart(
-                data,
+            data = get_market(
                 tf
             )
 
 
-            analysis = analyze(
-                str(data[:100])
+            # ساخت عکس چارت
+
+            chart_file = create_chart(
+
+                data,
+
+                tf
+
             )
 
+
+
+            # تحلیل AI
+
+            analysis_text = analyze(
+
+                str(data)
+
+            )
+
+
+
+            # ارسال عکس
 
             await bot.send_photo(
 
                 chat_id=CHAT_ID,
 
                 photo=open(
-                    chart,
+                    chart_file,
                     "rb"
                 ),
 
                 caption=f"""
-📊 XAUUSD AI ANALYSIS
+
+📊 XAUUSD AI
 
 ⏱ تایم فریم:
 {name}
 
 
-{analysis}
-
-
 @afinace - ai
+
 """
 
             )
+
+
+
+            # ارسال تحلیل جدا
+
+            messages = split_message(
+                analysis_text
+            )
+
+
+            for msg in messages:
+
+
+                await bot.send_message(
+
+                    chat_id=CHAT_ID,
+
+                    text=f"""
+
+📊 تحلیل XAUUSD
+
+⏱ {name}
+
+
+{msg}
+
+
+@afinace - ai
+
+"""
+
+                )
+
+
+
+            print(
+                f"{name} Done"
+            )
+
 
 
         except Exception as e:
@@ -87,12 +177,16 @@ async def send_analysis():
                 chat_id=CHAT_ID,
 
                 text=f"""
+
 ❌ خطا در {name}
 
+
 {e}
+
 """
 
             )
+
 
 
 
