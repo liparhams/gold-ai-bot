@@ -2,66 +2,69 @@ import asyncio
 import requests
 from telegram import Bot
 
-from config import BOT_TOKEN, CHAT_ID, OPENROUTER_API_KEY, MODEL
+from config import BOT_TOKEN, CHAT_ID, OPENROUTER_API_KEY
 
 
 def get_ai_analysis():
 
+    url = "https://openrouter.ai/api/v1/chat/completions"
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com",
+        "X-Title": "Gold AI Bot"
+    }
+
     prompt = """
-تو یک تحلیلگر حرفه‌ای بازار طلا XAUUSD هستی.
+تو یک تحلیلگر حرفه‌ای XAUUSD هستی.
 
-یک تحلیل تکنیکال واقعی و کوتاه بده.
+برای طلا تحلیل تکنیکال بده.
 
-قوانین:
-- سیگنال خرید یا فروش قطعی نده.
-- حمایت و مقاومت را با عددهای منطقی نزدیک قیمت فعلی بنویس.
-- عددهای قدیمی و غیرواقعی نساز.
-- ساختار بازار، روند، حمایت، مقاومت و سناریو را توضیح بده.
-- خروجی فقط 10 خط باشد.
+مهم:
+- سیگنال قطعی خرید یا فروش نده.
+- عددهای حمایت و مقاومت را منطقی بنویس.
+- از قیمت‌های قدیمی استفاده نکن.
+- تحلیل را مثل یک تریدر حرفه‌ای توضیح بده.
+- فقط 10 تا 12 خط باشد.
 
 فرمت:
 
 📊 تحلیل XAUUSD
 
-⏱ تایم فریم:
+⏱ تایم فریم: 30M
 
-📈 روند:
+📈 روند بازار:
 
-📌 حمایت:
+📌 حمایت مهم:
 
-📌 مقاومت:
+📌 مقاومت مهم:
 
-🧠 تحلیل:
+🧠 تحلیل تکنیکال:
 
-🔎 سناریو:
+🔎 سناریوها:
 
 ⚠️ جمع بندی:
 
 @afinace - ai
 """
 
-    url = "https://openrouter.ai/api/v1/chat/completions"
-
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json"
-    }
-
     data = {
-        "model": MODEL,
+        "model": "google/gemini-2.5-flash",
         "messages": [
             {
                 "role": "user",
                 "content": prompt
             }
-        ]
+        ],
+        "temperature": 0.4
     }
 
     response = requests.post(
         url,
         headers=headers,
         json=data,
-        timeout=60
+        timeout=90
     )
 
     result = response.json()
@@ -69,18 +72,19 @@ def get_ai_analysis():
     if "choices" in result:
         return result["choices"][0]["message"]["content"]
 
-    return "خطا در دریافت تحلیل:\n" + str(result)
+    return "خطای OpenRouter:\n" + str(result)
+
 
 
 async def send_analysis():
 
     bot = Bot(token=BOT_TOKEN)
 
-    text = get_ai_analysis()
+    analysis = get_ai_analysis()
 
     await bot.send_message(
         chat_id=CHAT_ID,
-        text=text
+        text=analysis
     )
 
 
