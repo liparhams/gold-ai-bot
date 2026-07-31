@@ -1,66 +1,146 @@
 import requests
-import pandas as pd
 
-from config import OPENROUTER_API_KEY, MODELS
+from config import (
+    OPENROUTER_API_KEY,
+    MODELS
+)
+
 from news import get_today_news
+
 
 
 def ask_ai(prompt):
 
+    if not OPENROUTER_API_KEY:
+
+        return "❌ OpenRouter API Key پیدا نشد."
+
+
+    headers = {
+
+        "Authorization":
+        f"Bearer {OPENROUTER_API_KEY}",
+
+        "Content-Type":
+        "application/json",
+
+        "HTTP-Referer":
+        "https://github.com",
+
+        "X-Title":
+        "Gold AI Bot"
+
+    }
+
+
+
     for model in MODELS:
+
 
         try:
 
-            r = requests.post(
+
+            print(
+                "Trying model:",
+                model
+            )
+
+
+            response = requests.post(
 
                 "https://openrouter.ai/api/v1/chat/completions",
 
-                headers={
-                    "Authorization":
-                    f"Bearer {OPENROUTER_API_KEY}",
-
-                    "Content-Type":
-                    "application/json"
-                },
-
+                headers=headers,
 
                 json={
 
                     "model": model,
 
-                    "max_tokens": 3500,
-
-                    "temperature": 0.2,
-
                     "messages":[
 
                         {
-                            "role":"user",
-                            "content":prompt
+
+                            "role":
+                            "system",
+
+                            "content":
+                            "You are a professional XAUUSD forex analyst."
+
+                        },
+
+                        {
+
+                            "role":
+                            "user",
+
+                            "content":
+                            prompt
+
                         }
 
-                    ]
+                    ],
+
+                    "temperature":
+                    0.2,
+
+                    "max_tokens":
+                    4000
 
                 },
 
-                timeout=90
+                timeout=120
+
             )
 
 
-            data = r.json()
+            data = response.json()
+
 
 
             if "choices" in data:
 
-                return data["choices"][0]["message"]["content"]
+
+                print(
+                    "Working model:",
+                    model
+                )
 
 
-        except Exception:
+                return (
+                    data["choices"][0]
+                    ["message"]
+                    ["content"]
+                )
 
-            continue
 
 
-    return "❌ هیچ مدل AI در دسترس نیست."
+            else:
+
+                print(
+                    "Model unavailable:",
+                    model,
+                    data
+                )
+
+
+
+        except Exception as e:
+
+
+            print(
+                "Model error:",
+                model,
+                e
+            )
+
+
+
+    return """
+❌ هیچ مدل AI فعال پیدا نشد.
+
+OpenRouter مدل‌های رایگان را تغییر داده یا محدود کرده است.
+"""
+
 
 
 
@@ -68,15 +148,18 @@ def ask_ai(prompt):
 def ai_analysis(df, timeframe):
 
 
-    last = df.tail(100).to_string()
+    candles = df.tail(120).to_string()
+
 
 
     news = get_today_news()
 
 
+
     prompt = f"""
 
-تو تحلیلگر حرفه‌ای XAUUSD هستی.
+تحلیل حرفه‌ای XAUUSD انجام بده.
+
 
 تایم فریم:
 {timeframe}
@@ -84,41 +167,41 @@ def ai_analysis(df, timeframe):
 
 داده کندل:
 
-{last}
+{candles}
 
 
-اخبار امروز:
+اخبار مهم امروز USD:
 
 {news}
 
 
-یک تحلیل حرفه‌ای بده:
+
+خروجی فقط با این ساختار:
 
 
-📊 XAUUSD AI ANALYSIS
+📊 تحلیل XAUUSD
 
 
 ⏱ تایم فریم:
 
 
-📈 Trend:
-روند با ساختار بازار
+📈 روند بازار:
+(Trend + Market Structure)
 
 
-💰 Price:
-قیمت فعلی
+💰 وضعیت قیمت:
+(قیمت آخر + موقعیت نسبت به ساختار)
 
 
-📌 Support:
-سه حمایت مهم
+📌 حمایت‌های مهم:
+(حداقل 3 سطح واقعی از داده)
 
 
-📌 Resistance:
-سه مقاومت مهم
+📌 مقاومت‌های مهم:
+(حداقل 3 سطح واقعی از داده)
 
 
 🧠 Smart Money:
-
 
 Market Structure:
 Liquidity:
@@ -133,16 +216,20 @@ Trend:
 🔴 سناریو نزول:
 
 
+📰 اخبار مهم امروز:
+(فقط خبرهای مهم قرمز آمریکا)
+
+
 ⚠️ جمع بندی:
 
 
 قوانین:
 
-- مقدمه ننویس
-- سلام ننویس
-- عدد از خودت نساز
-- سیگنال قطعی نده
-- فقط بر اساس داده کندل تحلیل کن
+- عدد خیالی نساز
+- قیمت از داده کندل استخراج شود
+- سلام و مقدمه ننویس
+- سیگنال قطعی خرید یا فروش نده
+- حرفه‌ای و کوتاه ولی کامل بنویس
 
 """
 
