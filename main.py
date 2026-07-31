@@ -2,11 +2,17 @@ import asyncio
 
 from telegram import Bot
 
-from config import BOT_TOKEN, CHAT_ID
+
+from config import (
+    BOT_TOKEN,
+    CHAT_ID,
+    TIMEFRAMES
+)
+
 
 from market import get_market
 from chart import create_chart
-from analysis import analyze
+from analysis import get_analysis
 
 
 
@@ -16,150 +22,49 @@ bot = Bot(
 
 
 
-def split_message(text, limit=4000):
-
-    parts = []
-
-    while len(text) > limit:
-
-        index = text[:limit].rfind("\n")
-
-        if index == -1:
-            index = limit
-
-
-        parts.append(
-            text[:index]
-        )
-
-        text = text[index:]
-
-
-    if text:
-        parts.append(text)
-
-
-    return parts
-
-
-
-
 async def send_analysis():
 
 
-    timeframes = [
-
-        ("30min", "30 دقیقه"),
-
-        ("4h", "4 ساعته"),
-
-        ("1day", "روزانه")
-
-    ]
-
-
-
-    for tf, name in timeframes:
+    for interval, name in TIMEFRAMES:
 
 
         try:
 
+            print("Getting", name)
 
-            print(
-                f"Getting {name}"
+
+            df = get_market(interval)
+
+
+            image = create_chart(
+                df,
+                interval
             )
 
 
-            # گرفتن دیتا
-
-            data = get_market(
-                tf
+            text = get_analysis(
+                df,
+                name
             )
 
 
-            # ساخت عکس چارت
-
-            chart_file = create_chart(
-
-                data,
-
-                tf
-
+            caption = (
+                f"📊 XAUUSD AI\n\n"
+                f"⏱ تایم فریم: {name}\n\n"
+                + text
             )
 
 
+            if len(caption) > 1000:
 
-            # تحلیل AI
-
-            analysis_text = analyze(
-
-                str(data)
-
-            )
+                caption = caption[:950] + "\n\n..."
 
 
-
-            # ارسال عکس
 
             await bot.send_photo(
-
                 chat_id=CHAT_ID,
-
-                photo=open(
-                    chart_file,
-                    "rb"
-                ),
-
-                caption=f"""
-
-📊 XAUUSD AI
-
-⏱ تایم فریم:
-{name}
-
-
-@afinace - ai
-
-"""
-
-            )
-
-
-
-            # ارسال تحلیل جدا
-
-            messages = split_message(
-                analysis_text
-            )
-
-
-            for msg in messages:
-
-
-                await bot.send_message(
-
-                    chat_id=CHAT_ID,
-
-                    text=f"""
-
-📊 تحلیل XAUUSD
-
-⏱ {name}
-
-
-{msg}
-
-
-@afinace - ai
-
-"""
-
-                )
-
-
-
-            print(
-                f"{name} Done"
+                photo=open(image,"rb"),
+                caption=caption
             )
 
 
@@ -167,26 +72,10 @@ async def send_analysis():
         except Exception as e:
 
 
-            print(
-                e
-            )
-
-
             await bot.send_message(
-
                 chat_id=CHAT_ID,
-
-                text=f"""
-
-❌ خطا در {name}
-
-
-{e}
-
-"""
-
+                text=f"❌ خطا در {name}\n\n{e}"
             )
-
 
 
 
