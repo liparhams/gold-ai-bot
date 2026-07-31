@@ -1,95 +1,128 @@
 import requests
-from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 def get_today_news():
 
     try:
 
-        url = "https://www.forexfactory.com/calendar"
-
-        headers = {
-            "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-        }
+        # Forex Factory calendar API alternative
+        url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
 
 
         response = requests.get(
             url,
-            headers=headers,
-            timeout=20
+            timeout=20,
+            headers={
+                "User-Agent": "Mozilla/5.0"
+            }
         )
 
 
-        if response.status_code != 200:
+        data = response.json()
 
-            return (
-                "⚠️ دسترسی به تقویم اقتصادی ممکن نیست."
+
+        today = datetime.now(
+            timezone.utc
+        ).strftime("%Y-%m-%d")
+
+
+        today_news = []
+
+
+        week_news = []
+
+
+        for item in data:
+
+
+            currency = item.get(
+                "country",
+                ""
             )
 
 
-        soup = BeautifulSoup(
-            response.text,
-            "html.parser"
-        )
-
-
-        events = []
-
-
-        rows = soup.select(
-            "tr.calendar__row"
-        )
-
-
-        for row in rows:
-
-
-            text = row.get_text(
-                " ",
-                strip=True
+            impact = item.get(
+                "impact",
+                ""
             )
 
 
-            # فقط خبرهای آمریکا و مهم
-            if (
-                "USD" in text
-                and
-                (
-                    "High"
-                    in text
-                    or
-                    "red"
-                    in str(row)
+            date = item.get(
+                "date",
+                ""
+            )
+
+
+            title = item.get(
+                "title",
+                ""
+            )
+
+
+            if currency == "USD" and impact == "High":
+
+
+                week_news.append(item)
+
+
+
+                if today in date:
+
+
+                    today_news.append(item)
+
+
+
+        # اگر امروز خبر قرمز داشت
+
+        if today_news:
+
+
+            text = "📰 اخبار مهم امروز USD:\n\n"
+
+
+            for n in today_news:
+
+
+                text += (
+                    f"⏰ {n.get('time','')}\n"
+                    f"🇺🇸 {n.get('title','')}\n"
+                    f"Actual: {n.get('actual','-')}\n"
+                    f"Forecast: {n.get('forecast','-')}\n"
+                    f"Previous: {n.get('previous','-')}\n\n"
                 )
-            ):
-
-                events.append(text)
 
 
-
-        if not events:
-
-            return (
-                "📰 امروز خبر قرمز مهم USD پیدا نشد."
-            )
+            return text
 
 
 
-        result = "📰 اخبار مهم امروز USD:\n\n"
+        # اگر امروز خبری نبود
+
+        text = (
+            "📰 اخبار مهم امروز USD:\n\n"
+            "امروز خبر قرمز مهمی برای دلار آمریکا وجود ندارد.\n\n"
+        )
 
 
-        for item in events[:5]:
-
-            result += (
-                "🔴 "
-                + item
-                + "\n\n"
-            )
+        if week_news:
 
 
-        return result
+            text += "آخرین خبرهای مهم هفته:\n\n"
+
+
+            for n in week_news[:3]:
+
+
+                text += (
+                    f"🇺🇸 {n.get('title','')}\n"
+                    f"📅 {n.get('date','')}\n\n"
+                )
+
+
+
+        return text
 
 
 
@@ -97,6 +130,6 @@ def get_today_news():
 
 
         return (
-            "❌ خطای تقویم اقتصادی: "
-            + str(e)
+            "📰 اخبار اقتصادی:\n\n"
+            "دریافت تقویم اقتصادی موقتاً ناموفق بود.\n"
         )
