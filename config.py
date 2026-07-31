@@ -1,5 +1,5 @@
-BOT_TOKEN = "توکن واقعی ربات"
+BOT_TOKEN = "توکن ربات"
 
-CHAT_ID = "-100آیدی_کانال_یا_گروه"
+CHAT_ID = "-100xxxxxxxxxx"
 
-OPENROUTER_API_KEY = "کلید واقعی OpenRouter"
+OPENROUTER_API_KEY = "sk-or-v1-xxxxxxxxxxxxxxxx"
