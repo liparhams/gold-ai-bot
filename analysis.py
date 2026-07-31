@@ -21,19 +21,25 @@ def ask_ai(prompt):
                 headers=headers,
                 json={
                     "model": model,
-                    "messages":[
+                    "messages": [
                         {
-                            "role":"system",
+                            "role": "system",
                             "content":
-                            "Professional XAUUSD Smart Money analyst. Never invent prices."
+                            """
+تو تحلیلگر حرفه‌ای XAUUSD هستی.
+فقط از داده کندل استفاده کن.
+هیچ عددی از خودت نساز.
+مقدمه، سلام و توضیح اضافه ننویس.
+تحلیل کوتاه و کاربردی بده.
+"""
                         },
                         {
-                            "role":"user",
-                            "content":prompt
+                            "role": "user",
+                            "content": prompt
                         }
                     ],
-                    "temperature":0.2,
-                    "max_tokens":2500
+                    "temperature":0.1,
+                    "max_tokens":1000
                 },
                 timeout=90
             )
@@ -49,50 +55,49 @@ def ask_ai(prompt):
 
         except Exception as e:
 
-            print(model,e)
+            print(
+                model,
+                e
+            )
 
 
-    return "❌ AI unavailable"
+    return "❌ AI در دسترس نیست."
 
 
 
 def ai_analysis(df,timeframe):
 
 
-    candles=df.tail(120).to_string()
-
-    news=get_today_news()
+    candles=df.tail(80).to_string()
 
 
     prompt=f"""
 
-Analyze XAUUSD.
+تحلیل XAUUSD
 
-Timeframe:
+تایم فریم:
 {timeframe}
 
 
-Candles:
+کندل ها:
+
 {candles}
 
 
-News:
-{news}
-
-
-Output:
+ساختار خروجی:
 
 📊 تحلیل XAUUSD
 
-⏱ تایم فریم:
+📈 روند:
+(صعودی، نزولی، رنج)
 
-📈 روند بازار:
-
-💰 قیمت:
+💰 قیمت آخر:
 
 📌 حمایت:
+(حداکثر 3 سطح)
 
 📌 مقاومت:
+(حداکثر 3 سطح)
 
 🧠 Smart Money:
 Market Structure:
@@ -104,15 +109,14 @@ BOS:
 
 🔴 سناریو نزول:
 
-📰 اخبار امروز USD:
-
 ⚠️ جمع بندی:
 
 
-Rules:
-- No greetings
-- No fake prices
-- Use only candle data
+قوانین:
+- حداکثر 350 کلمه
+- قیمت فقط از داده بالا
+- اگر مطمئن نیستی بنویس نامشخص
+- سیگنال قطعی نده
 
 """
 
