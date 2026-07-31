@@ -18,31 +18,31 @@ from market import get_gold_data
 def get_ai_analysis():
 
 
-    market = get_gold_data()
+    market_data = get_gold_data()
 
 
     prompt = f"""
 
 تو یک تحلیلگر حرفه‌ای XAUUSD هستی.
 
-این داده واقعی بازار است:
+داده واقعی بازار:
 
-{market}
+{market_data}
 
 
-بر اساس این اطلاعات تحلیل کن.
+بر اساس همین داده تحلیل کن.
 
 قوانین:
+
 - سیگنال قطعی خرید یا فروش نده.
-- تحلیلگر باش.
-- حمایت و مقاومت را از داده بالا استخراج کن.
 - عدد خیالی نساز.
+- حمایت و مقاومت را از داده استخراج کن.
+- تحلیل کامل بده.
 
 
-فرمت خروجی:
+فرمت:
 
 📊 تحلیل XAUUSD
-
 
 ⏱ تایم فریم:
 4H
@@ -62,7 +62,6 @@ def get_ai_analysis():
 
 🧠 تحلیل تکنیکال:
 
-بررسی:
 Market Structure
 Liquidity
 Order Block
@@ -82,8 +81,6 @@ Trend
 ⚠️ جمع بندی:
 
 
-در آخر:
-
 @afinace - ai
 
 """
@@ -91,18 +88,22 @@ Trend
 
     headers = {
 
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Authorization":
+        f"Bearer {OPENROUTER_API_KEY}",
 
-        "Content-Type": "application/json",
+        "Content-Type":
+        "application/json",
 
-        "HTTP-Referer": "https://github.com",
+        "HTTP-Referer":
+        "https://github.com",
 
-        "X-Title": "Afinace AI"
+        "X-Title":
+        "Afinace AI"
 
     }
 
 
-    data = {
+    body = {
 
         "model": MODEL,
 
@@ -118,12 +119,11 @@ Trend
 
         ],
 
-        "max_tokens": 2000,
+        "max_tokens": 2500,
 
         "temperature": 0.2
 
     }
-
 
 
     response = requests.post(
@@ -132,7 +132,7 @@ Trend
 
         headers=headers,
 
-        json=data,
+        json=body,
 
         timeout=90
 
@@ -142,13 +142,12 @@ Trend
     result = response.json()
 
 
-
     if "choices" in result:
 
         return result["choices"][0]["message"]["content"]
 
 
-    return f"خطای OpenRouter:\n{result}"
+    return "خطای OpenRouter:\n" + str(result)
 
 
 
@@ -157,19 +156,19 @@ Trend
 async def send_analysis():
 
 
+    analysis = get_ai_analysis()
+
+
     bot = Bot(
         token=BOT_TOKEN
     )
-
-
-    text = get_ai_analysis()
 
 
     await bot.send_message(
 
         chat_id=CHAT_ID,
 
-        text=text
+        text=analysis
 
     )
 
