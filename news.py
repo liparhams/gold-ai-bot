@@ -3,48 +3,43 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 
-
 def get_today_news():
-
 
     try:
 
-        url = (
-            "https://www.forexfactory.com/calendar"
-        )
-
+        url = "https://www.forexfactory.com/calendar"
 
         headers = {
-
             "User-Agent":
-            "Mozilla/5.0"
-
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
         }
 
 
-        r = requests.get(
+        response = requests.get(
             url,
             headers=headers,
             timeout=20
         )
 
 
+        if response.status_code != 200:
+
+            return (
+                "⚠️ دسترسی به تقویم اقتصادی ممکن نیست."
+            )
+
+
         soup = BeautifulSoup(
-            r.text,
+            response.text,
             "html.parser"
         )
 
 
-        today = datetime.utcnow().strftime(
-            "%b %d"
-        )
+        events = []
 
 
-        news = []
-
-
-        rows = soup.find_all(
-            "tr"
+        rows = soup.select(
+            "tr.calendar__row"
         )
 
 
@@ -57,26 +52,44 @@ def get_today_news():
             )
 
 
+            # فقط خبرهای آمریکا و مهم
             if (
                 "USD" in text
                 and
-                "High" in text
+                (
+                    "High"
+                    in text
+                    or
+                    "red"
+                    in str(row)
+                )
             ):
 
-                news.append(
-                    text
-                )
+                events.append(text)
 
 
 
-        if news:
+        if not events:
 
-            return "\n".join(
-                news[:5]
+            return (
+                "📰 امروز خبر قرمز مهم USD پیدا نشد."
             )
 
 
-        return "امروز خبر قرمز مهم USD پیدا نشد."
+
+        result = "📰 اخبار مهم امروز USD:\n\n"
+
+
+        for item in events[:5]:
+
+            result += (
+                "🔴 "
+                + item
+                + "\n\n"
+            )
+
+
+        return result
 
 
 
@@ -84,6 +97,6 @@ def get_today_news():
 
 
         return (
-            "خطا در دریافت خبر: "
+            "❌ خطای تقویم اقتصادی: "
             + str(e)
         )
