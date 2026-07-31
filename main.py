@@ -1,126 +1,179 @@
 import asyncio
 import requests
+
 from telegram import Bot
 
-from config import BOT_TOKEN, CHAT_ID, OPENROUTER_API_KEY, MODEL
+from config import (
+    BOT_TOKEN,
+    CHAT_ID,
+    OPENROUTER_API_KEY,
+    MODEL,
+    OPENROUTER_URL
+)
 
+from market import get_gold_data
 
-OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 
 def get_ai_analysis():
 
-    prompt = """
-تو یک تحلیلگر حرفه‌ای بازار طلا XAUUSD هستی.
 
-هدف: ارائه تحلیل تکنیکال، نه سیگنال خرید یا فروش.
+    market = get_gold_data()
 
-قوانین مهم:
-- قیمت لحظه‌ای در اختیار تو نیست.
-- هیچ عددی برای قیمت، حمایت یا مقاومت از خودت نساز.
-- اگر قیمت واقعی موجود نیست، حمایت و مقاومت را به صورت "ناحیه مهم" توضیح بده.
-- از ساختن قیمت‌های قدیمی مثل 1600 یا 2300 خودداری کن.
 
-خروجی دقیقاً با این ساختار:
+    prompt = f"""
+
+تو یک تحلیلگر حرفه‌ای XAUUSD هستی.
+
+این داده واقعی بازار است:
+
+{market}
+
+
+بر اساس این اطلاعات تحلیل کن.
+
+قوانین:
+- سیگنال قطعی خرید یا فروش نده.
+- تحلیلگر باش.
+- حمایت و مقاومت را از داده بالا استخراج کن.
+- عدد خیالی نساز.
+
+
+فرمت خروجی:
 
 📊 تحلیل XAUUSD
+
 
 ⏱ تایم فریم:
 4H
 
+
 📈 روند بازار:
-بررسی روند، سقف‌ها و کف‌ها، قدرت حرکت
+
 
 💰 وضعیت قیمت:
-توضیح وضعیت فعلی بازار بدون عددسازی
+
 
 📌 حمایت های مهم:
-ناحیه‌های احتمالی حمایت و دلیل اهمیت آنها
+
 
 📌 مقاومت های مهم:
-ناحیه‌های احتمالی مقاومت و دلیل اهمیت آنها
+
 
 🧠 تحلیل تکنیکال:
+
 بررسی:
-- Market Structure
-- Liquidity
-- Order Block
-- Break of Structure
-- Momentum
-- مناطق مهم عرضه و تقاضا
+Market Structure
+Liquidity
+Order Block
+BOS
+Trend
+
 
 🔎 سناریوها:
 
+
 🟢 سناریوی صعود:
-شرایطی که باعث ادامه حرکت صعودی می‌شود
+
 
 🔴 سناریوی نزول:
-شرایطی که باعث تغییر یا اصلاح نزولی می‌شود
+
 
 ⚠️ جمع بندی:
-یک نتیجه حرفه‌ای و کوتاه
 
-در آخر بنویس:
+
+در آخر:
 
 @afinace - ai
+
 """
 
 
     headers = {
+
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+
         "Content-Type": "application/json",
+
         "HTTP-Referer": "https://github.com",
+
         "X-Title": "Afinace AI"
+
     }
 
 
     data = {
+
         "model": MODEL,
+
         "messages": [
+
             {
+
                 "role": "user",
+
                 "content": prompt
+
             }
+
         ],
-        "max_tokens": 1500,
-        "temperature": 0.3
+
+        "max_tokens": 2000,
+
+        "temperature": 0.2
+
     }
 
 
-    try:
 
-        response = requests.post(
-            OPENROUTER_URL,
-            headers=headers,
-            json=data,
-            timeout=60
-        )
+    response = requests.post(
 
-        result = response.json()
+        OPENROUTER_URL,
 
+        headers=headers,
 
-        if "choices" in result:
-            return result["choices"][0]["message"]["content"]
+        json=data,
 
-        else:
-            return f"خطای OpenRouter:\n{result}"
+        timeout=90
+
+    )
 
 
-    except Exception as e:
-        return f"خطای اتصال AI:\n{e}"
+    result = response.json()
+
+
+
+    if "choices" in result:
+
+        return result["choices"][0]["message"]["content"]
+
+
+    return f"خطای OpenRouter:\n{result}"
+
+
 
 
 
 async def send_analysis():
 
-    bot = Bot(token=BOT_TOKEN)
 
-    analysis = get_ai_analysis()
+    bot = Bot(
+        token=BOT_TOKEN
+    )
+
+
+    text = get_ai_analysis()
+
 
     await bot.send_message(
+
         chat_id=CHAT_ID,
-        text=analysis
+
+        text=text
+
     )
+
+
 
 
 
