@@ -1,55 +1,86 @@
-import asyncio
+import os
 import requests
+import asyncio
 from telegram import Bot
+from dotenv import load_dotenv
 
-from config import TELEGRAM_TOKEN, CHANNEL_ID, OPENROUTER_API_KEY
+load_dotenv()
+
+TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 
 def create_analysis():
 
-    response = requests.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        headers={
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://github.com",
-            "X-Title": "Gold AI Bot"
-        },
-        json={
-            "model": "meta-llama/llama-3.1-8b-instruct",
-            "messages": [
-                {
-                    "role": "user",
-                    "content": """
-تحلیل کوتاه XAUUSD بنویس.
-به فارسی.
-شامل:
-- روند
-- حمایت
-- مقاومت
-- خرید
-- فروش
-- مدیریت سرمایه
+    url = "https://openrouter.ai/api/v1/chat/completions"
+
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    prompt = """
+برای طلا XAUUSD یک تحلیل کوتاه بده.
+
+فرمت دقیقا:
+
+📊 نتیجه:
+(حداکثر 2 خط)
+
+🟢 حمایت:
+(سطوح مهم)
+
+🔴 مقاومت:
+(سطوح مهم)
+
+📈 نظر معامله:
+(خرید یا فروش یا صبر)
+
+⚠️ ریسک:
+(یک خط)
+
+حداکثر 10 خط بنویس.
+از توضیحات اضافه خودداری کن.
 """
-                }
-            ]
-        },
-        timeout=60
+
+    data = {
+        "model": "meta-llama/llama-3.1-8b-instruct",
+        "messages": [
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        "max_tokens": 300
+    }
+
+    response = requests.post(
+        url,
+        headers=headers,
+        json=data
     )
 
     result = response.json()
-    print(result)
 
-    if response.status_code == 200:
-        return result["choices"][0]["message"]["content"]
+    if "choices" not in result:
+        return f"خطای OpenRouter: {result}"
 
-    return f"خطای OpenRouter: {result}"
+    text = result["choices"][0]["message"]["content"]
+
+    return text + "\n\n@afinace - ai"
 
 
 async def send_analysis():
+
     bot = Bot(token=TELEGRAM_TOKEN)
-    text = create_analysis()
-    await bot.send_message(chat_id=CHANNEL_ID, text=text)
+
+    analysis = create_analysis()
+
+    await bot.send_message(
+        chat_id=CHAT_ID,
+        text=analysis
+    )
 
 
 if __name__ == "__main__":
