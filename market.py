@@ -4,36 +4,36 @@ import pandas as pd
 from config import MARKET_API_KEY, SYMBOL
 
 
-def get_market(timeframe):
+def get_market(interval):
 
     url = "https://api.twelvedata.com/time_series"
 
 
     params = {
+
         "symbol": SYMBOL,
-        "interval": timeframe,
-        "outputsize": 200,
+
+        "interval": interval,
+
+        "outputsize": 150,
+
         "apikey": MARKET_API_KEY
+
     }
 
 
-    response = requests.get(
+    r = requests.get(
         url,
         params=params,
         timeout=30
     )
 
 
-    data = response.json()
+    data = r.json()
 
 
     if "values" not in data:
-        raise Exception(
-            data.get(
-                "message",
-                str(data)
-            )
-        )
+        raise Exception(data)
 
 
     df = pd.DataFrame(
@@ -51,14 +51,14 @@ def get_market(timeframe):
     )
 
 
-    for col in [
+    for c in [
         "open",
         "high",
         "low",
         "close"
     ]:
-        df[col] = pd.to_numeric(
-            df[col]
+        df[c] = pd.to_numeric(
+            df[c]
         )
 
 
