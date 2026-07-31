@@ -1,56 +1,31 @@
 import requests
+
 from config import OPENROUTER_API_KEY
 from news import get_today_news
 
 
 
-def get_available_models():
+AI_MODELS = [
 
-    try:
+    "meta-llama/llama-3.1-8b-instruct",
 
-        r = requests.get(
+    "google/gemini-2.0-flash-001",
 
-            "https://openrouter.ai/api/v1/models",
+    "qwen/qwen-2.5-7b-instruct",
 
-            headers={
-                "Authorization":
-                f"Bearer {OPENROUTER_API_KEY}"
-            },
+    "mistralai/mistral-7b-instruct"
 
-            timeout=30
-
-        )
-
-
-        data = r.json()
-
-
-        models = []
-
-
-        for m in data.get("data", []):
-
-            name = m.get("id")
-
-
-            if name:
-
-                models.append(name)
-
-
-
-        return models[:30]
-
-
-    except Exception:
-
-        return []
-
-
+]
 
 
 
 def ask_ai(prompt):
+
+
+    if not OPENROUTER_API_KEY:
+
+        return "❌ کلید OpenRouter وجود ندارد."
+
 
 
     headers = {
@@ -71,57 +46,19 @@ def ask_ai(prompt):
 
 
 
-    backup_models = [
-
-        "meta-llama/llama-3.1-8b-instruct",
-
-        "google/gemini-2.0-flash-001",
-
-        "qwen/qwen-2.5-7b-instruct",
-
-        "mistralai/mistral-7b-instruct"
-
-    ]
-
-
-
-    # مدل های جدید OpenRouter
-
-    live_models = get_available_models()
-
-
-
-    models = backup_models + live_models
-
-
-
-    checked = set()
-
-
-
-    for model in models:
-
-
-        if model in checked:
-
-            continue
-
-
-        checked.add(model)
-
+    for model in AI_MODELS:
 
 
         try:
 
 
             print(
-                "Trying:",
+                "Trying AI:",
                 model
             )
 
 
-
-            r = requests.post(
+            response = requests.post(
 
                 "https://openrouter.ai/api/v1/chat/completions",
 
@@ -129,7 +66,9 @@ def ask_ai(prompt):
 
                 json={
 
-                    "model": model,
+                    "model":
+                    model,
+
 
                     "messages":[
 
@@ -139,7 +78,11 @@ def ask_ai(prompt):
                             "system",
 
                             "content":
-                            "You are expert XAUUSD forex analyst."
+                            """
+تو یک تحلیلگر حرفه‌ای فارکس هستی.
+فقط بر اساس داده واقعی تحلیل کن.
+عدد خیالی نساز.
+"""
 
                         },
 
@@ -155,13 +98,16 @@ def ask_ai(prompt):
 
                     ],
 
+
                     "temperature":
                     0.2,
+
 
                     "max_tokens":
                     4000
 
                 },
+
 
                 timeout=90
 
@@ -169,23 +115,36 @@ def ask_ai(prompt):
 
 
 
-            data = r.json()
+            data = response.json()
 
 
 
-            if "choices" in data:
+            if data.get("choices"):
 
 
                 print(
-                    "SUCCESS:",
+                    "AI OK:",
                     model
                 )
 
 
                 return (
+
                     data["choices"][0]
                     ["message"]
                     ["content"]
+
+                )
+
+
+
+            else:
+
+
+                print(
+                    "AI failed:",
+                    model,
+                    data
                 )
 
 
@@ -194,17 +153,16 @@ def ask_ai(prompt):
 
 
             print(
-                "FAILED:",
+                "AI error:",
                 model,
                 e
             )
 
 
 
-    return (
-        "❌ تمام موتورهای AI "
-        "در دسترس نیستند."
-    )
+    return """
+❌ هیچ موتور AI پاسخ نداد.
+"""
 
 
 
@@ -223,46 +181,69 @@ def ai_analysis(df, timeframe):
 
     prompt = f"""
 
-تحلیل حرفه‌ای XAUUSD بده.
+تحلیل XAUUSD انجام بده.
 
 
 تایم فریم:
+
 {timeframe}
 
 
-کندل‌ها:
+
+داده کندل:
 
 {candles}
 
 
-اخبار امروز:
+
+اخبار اقتصادی امروز:
 
 {news}
 
 
 
-قالب:
+خروجی:
+
 
 📊 تحلیل XAUUSD
 
+
 ⏱ تایم فریم:
+
 
 📈 روند بازار:
 
-💰 قیمت:
+(Trend + Market Structure)
 
-📌 حمایت‌ها:
 
-📌 مقاومت‌ها:
+💰 وضعیت قیمت:
+
+(آخرین قیمت و شرایط)
+
+
+📌 حمایت‌های مهم:
+
+حداقل ۳ سطح واقعی
+
+
+📌 مقاومت‌های مهم:
+
+حداقل ۳ سطح واقعی
 
 
 🧠 Smart Money:
 
+
 Market Structure:
+
 Liquidity:
+
 Order Block:
+
 BOS:
+
 Trend:
+
 
 
 🔎 سناریو صعود:
@@ -271,18 +252,19 @@ Trend:
 🔴 سناریو نزول:
 
 
-📰 اخبار مهم USD:
+📰 اخبار مهم USD امروز:
 
 
 ⚠️ جمع بندی:
 
 
+
 قوانین:
 
-- عدد خیالی نساز
-- فقط از داده استفاده کن
-- سیگنال قطعی نده
-- مقدمه ننویس
+- مقدمه و سلام ننویس
+- فقط تحلیل بده
+- قیمت ساختگی نساز
+- سیگنال قطعی خرید فروش نده
 
 """
 
