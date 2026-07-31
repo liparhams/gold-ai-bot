@@ -3,16 +3,24 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 
+
 def get_today_news():
+
 
     try:
 
-        url = "https://www.forexfactory.com/calendar"
+        url = (
+            "https://www.forexfactory.com/calendar"
+        )
+
 
         headers = {
+
             "User-Agent":
             "Mozilla/5.0"
+
         }
+
 
         r = requests.get(
             url,
@@ -20,71 +28,62 @@ def get_today_news():
             timeout=20
         )
 
+
         soup = BeautifulSoup(
             r.text,
             "html.parser"
         )
 
 
-        news = []
-
-        rows = soup.select(
-            "tr.calendar__row"
+        today = datetime.utcnow().strftime(
+            "%b %d"
         )
 
 
-        today = datetime.now().strftime(
-            "%Y-%m-%d"
+        news = []
+
+
+        rows = soup.find_all(
+            "tr"
         )
 
 
         for row in rows:
 
-            impact = row.select_one(
-                ".impact"
-            )
 
-            currency = row.select_one(
-                ".calendar__currency"
-            )
-
-            event = row.select_one(
-                ".calendar__event"
+            text = row.get_text(
+                " ",
+                strip=True
             )
 
 
-            if not impact or not currency or not event:
-                continue
-
-
-            # فقط آمریکا
-            if currency.text.strip() != "USD":
-                continue
-
-
-            # فقط خبر قرمز
-            if "red" not in impact.get(
-                "class",
-                []
+            if (
+                "USD" in text
+                and
+                "High" in text
             ):
-                continue
+
+                news.append(
+                    text
+                )
 
 
-            news.append(
-                f"🔴 USD | {event.text.strip()}"
+
+        if news:
+
+            return "\n".join(
+                news[:5]
             )
 
 
-        if not news:
-            return "امروز خبر قرمز مهم آمریکا پیدا نشد."
+        return "امروز خبر قرمز مهم USD پیدا نشد."
 
-
-        return "\n".join(news[:10])
 
 
     except Exception as e:
 
+
         return (
-            "خطا در دریافت اخبار: "
+            "خطا در دریافت خبر: "
             + str(e)
         )
