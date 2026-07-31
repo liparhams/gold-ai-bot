@@ -1,59 +1,24 @@
 import mplfinance as mpf
-import pandas as pd
 
 
-def create_chart(data, timeframe):
+def create_chart(df, name):
 
-    df = pd.DataFrame(data)
-
-    df = df.rename(columns={
-        "datetime": "Date",
-        "open": "Open",
-        "high": "High",
-        "low": "Low",
-        "close": "Close"
-    })
+    file = f"{name}.png"
 
 
-    df["Date"] = pd.to_datetime(df["Date"])
+    df2 = df.copy()
 
-    df = df.set_index("Date")
-
-    df = df.astype(float)
-
-
-    filename = f"XAUUSD_{timeframe}.png"
-
-
-    ema50 = mpf.make_addplot(
-        df["Close"].ewm(span=50).mean()
-    )
-
-    ema200 = mpf.make_addplot(
-        df["Close"].ewm(span=200).mean()
-    )
+    df2.index = df2["time"]
 
 
     mpf.plot(
-
-        df,
-
+        df2,
         type="candle",
-
         style="charles",
-
-        addplot=[
-            ema50,
-            ema200
-        ],
-
-        title=f"XAUUSD {timeframe}",
-
+        title=f"XAUUSD {name}",
         volume=False,
-
-        savefig=filename
-
+        savefig=file
     )
 
 
-    return filename
+    return file
