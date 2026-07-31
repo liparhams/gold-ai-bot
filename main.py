@@ -1,76 +1,130 @@
 import asyncio
+import os
+from datetime import datetime
+
+import pytz
 
 from telegram import Bot
 
-from config import BOT_TOKEN,CHAT_ID
+from config import (
+    BOT_TOKEN,
+    CHAT_ID,
+    TIMEFRAMES,
+    SIGNATURE
+)
 
 from market import get_market
-
 from chart import create_chart
-
 from analysis import ai_analysis
 
 
-
-bot=Bot(
-    BOT_TOKEN
+bot = Bot(
+    token=BOT_TOKEN
 )
+
+
+
+def market_open():
+
+
+    tz = pytz.timezone(
+        "Europe/London"
+    )
+
+
+    now = datetime.now(tz)
+
+
+    # شنبه و یکشنبه
+    if now.weekday() >= 5:
+        return False
+
+
+    return True
+
 
 
 
 async def send():
 
 
-    for tf,name in [
 
-        ("30min","30 دقیقه"),
+    if not market_open():
 
-        ("4h","4 ساعته"),
 
-        ("1day","روزانه")
+        await bot.send_message(
 
-    ]:
+            chat_id=CHAT_ID,
+
+            text=
+            "⏸ بازار فارکس تعطیل است."
+
+        )
+
+
+        return
+
+
+
+    for title, tf in TIMEFRAMES.items():
 
 
         try:
 
 
-            data=get_market(tf)
+            df = get_market(tf)
 
 
 
-            img=create_chart(
-                data,
-                tf
+            image = create_chart(
+
+                df,
+
+                title
+
             )
 
 
 
-            text=ai_analysis(
-                data,
-                name
+            analysis = ai_analysis(
+
+                df,
+
+                title
+
             )
 
 
+
+            # عکس کوتاه
 
             await bot.send_photo(
 
-                CHAT_ID,
+                chat_id=CHAT_ID,
 
-                open(img,"rb"),
+                photo=open(
+                    image,
+                    "rb"
+                ),
 
                 caption=
-                f"📊 XAUUSD AI\n\n⏱ {name}"
+                f"📊 XAUUSD AI\n\n"
+                f"⏱ {title}"
 
             )
 
 
 
+            # متن تحلیل
+
             await bot.send_message(
 
-                CHAT_ID,
+                chat_id=CHAT_ID,
 
-                text
+                text=
+                analysis
+                +
+                SIGNATURE
 
             )
 
@@ -81,12 +135,20 @@ async def send():
 
             await bot.send_message(
 
-                CHAT_ID,
+                chat_id=CHAT_ID,
 
-                f"❌ خطا در {name}\n{e}"
+                text=
+                f"❌ خطا در {title}\n\n{e}"
 
             )
 
 
 
-asyncio.run(send())
+
+
+if __name__ == "__main__":
+
+
+    asyncio.run(
+        send()
+    )
