@@ -1,5 +1,8 @@
-python-telegram-bot==21.6
+python-telegram-bot
 requests
 pandas
 mplfinance
 matplotlib
+beautifulsoup4
+lxml
+python-dotenv
