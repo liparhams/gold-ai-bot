@@ -1,85 +1,86 @@
+import os
 import matplotlib.pyplot as plt
-
-from ta.trend import EMAIndicator
-from ta.momentum import RSIIndicator
+import mplfinance as mpf
 
 
+def create_chart(df, timeframe):
 
-def create_chart(df, name):
+    try:
 
-    df = df.copy()
-
-
-    df["EMA50"] = EMAIndicator(
-        df["close"],
-        window=50
-    ).ema_indicator()
+        os.makedirs(
+            "charts",
+            exist_ok=True
+        )
 
 
-    df["EMA200"] = EMAIndicator(
-        df["close"],
-        window=200
-    ).ema_indicator()
+        data = df.copy()
 
 
-    df["RSI"] = RSIIndicator(
-        df["close"],
-        window=14
-    ).rsi()
+        # EMA بدون کتابخانه ta
+        data["EMA50"] = (
+            data["close"]
+            .ewm(span=50)
+            .mean()
+        )
+
+
+        data["EMA200"] = (
+            data["close"]
+            .ewm(span=200)
+            .mean()
+        )
+
+
+        filename = (
+            "charts/"
+            + timeframe.replace(" ","_")
+            + ".png"
+        )
+
+
+        addplots = [
+
+            mpf.make_addplot(
+                data["EMA50"],
+                color="blue"
+            ),
+
+            mpf.make_addplot(
+                data["EMA200"],
+                color="red"
+            )
+
+        ]
+
+
+        mpf.plot(
+
+            data,
+
+            type="candle",
+
+            style="charles",
+
+            addplot=addplots,
+
+            title=f"XAUUSD AI - {timeframe}",
+
+            volume=False,
+
+            savefig=filename
+
+        )
+
+
+        return filename
 
 
 
-    plt.figure(
-        figsize=(12,6)
-    )
+    except Exception as e:
 
+        print(
+            "Chart error:",
+            e
+        )
 
-    plt.plot(
-        df.index,
-        df["close"],
-        label="XAUUSD"
-    )
-
-
-    plt.plot(
-        df.index,
-        df["EMA50"],
-        label="EMA50"
-    )
-
-
-    plt.plot(
-        df.index,
-        df["EMA200"],
-        label="EMA200"
-    )
-
-
-    plt.title(
-        "XAUUSD " + name
-    )
-
-
-    plt.grid()
-
-    plt.legend()
-
-
-    file = (
-        name
-        .replace(" ","_")
-        + ".png"
-    )
-
-
-    plt.savefig(
-        file,
-        dpi=200,
-        bbox_inches="tight"
-    )
-
-
-    plt.close()
-
-
-    return file
+        raise e
