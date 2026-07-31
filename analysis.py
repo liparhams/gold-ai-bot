@@ -3,152 +3,89 @@ import requests
 from config import OPENROUTER_API_KEY, MODEL
 
 
+def get_analysis(data, timeframe):
 
-def analyze(market_data):
+
+    prompt = f"""
+تو تحلیلگر حرفه‌ای XAUUSD هستی.
+
+تایم فریم:
+{timeframe}
+
+داده کندل:
+{data.tail(50).to_string()}
 
 
-    if not OPENROUTER_API_KEY:
+تحلیل فقط با این ساختار:
 
-        raise Exception(
-            "OPENROUTER_API_KEY موجود نیست"
-        )
+📈 Trend:
+ 
+💰 Price:
 
+📌 Support:
+۳ سطح
+
+📌 Resistance:
+۳ سطح
+
+🧠 Smart Money:
+Market Structure
+Liquidity
+Order Block
+BOS
+
+🟢 Bullish Scenario:
+
+🔴 Bearish Scenario:
+
+⚠️ Summary:
+
+قوانین:
+سلام و مقدمه ننویس.
+داستان تعریف نکن.
+عدد الکی نساز.
+حداکثر 700 کلمه.
+"""
 
 
     url = "https://openrouter.ai/api/v1/chat/completions"
 
 
-
     headers = {
-
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-
         "Content-Type": "application/json"
-
     }
 
 
-
-    prompt = f"""
-
-تو یک تحلیلگر حرفه‌ای XAUUSD هستی.
-
-داده کندل‌های بازار:
-
-{market_data}
-
-
-برای طلا تحلیل بده.
-
-
-قوانین:
-
-- عدد الکی نساز
-- فقط بر اساس داده بالا تحلیل کن
-- قیمت‌های حمایت و مقاومت را از داده استخراج کن
-- سیگنال قطعی خرید یا فروش نده
-
-
-فرمت خروجی:
-
-
-📈 روند بازار:
-
-...
-
-
-💰 وضعیت قیمت:
-
-...
-
-
-📌 حمایت‌های مهم:
-
-- ...
-
-
-📌 مقاومت‌های مهم:
-
-- ...
-
-
-🧠 تحلیل تکنیکال:
-
-Market Structure:
-Liquidity:
-Order Block:
-BOS:
-Trend:
-
-
-🔎 سناریو صعود:
-
-...
-
-
-🔴 سناریو نزول:
-
-...
-
-
-⚠️ جمع بندی:
-
-...
-
-
-حداکثر 1200 توکن جواب بده.
-"""
-
-
-
-    payload = {
+    body = {
 
         "model": MODEL,
 
-        "messages": [
-
+        "messages":[
             {
-
-                "role": "user",
-
-                "content": prompt
-
+                "role":"user",
+                "content":prompt
             }
-
         ],
 
-        "max_tokens": 1200,
-
-        "temperature": 0.3
-
+        "max_tokens":1200
     }
 
 
 
-    response = requests.post(
-
+    r = requests.post(
         url,
-
         headers=headers,
-
-        json=payload,
-
+        json=body,
         timeout=60
-
     )
 
 
-
-    result = response.json()
-
+    result = r.json()
 
 
     if "choices" not in result:
-
-        raise Exception(
-            result
-        )
-
+        raise Exception(result)
 
 
     return result["choices"][0]["message"]["content"]
