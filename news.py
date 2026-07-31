@@ -1,89 +1,90 @@
 import requests
 from bs4 import BeautifulSoup
-
+from datetime import datetime
 
 
 def get_today_news():
 
-
-    url="https://www.forexfactory.com/calendar"
-
-
-
-    headers={
-        "User-Agent":
-        "Mozilla/5.0"
-    }
-
-
-
     try:
 
+        url = "https://www.forexfactory.com/calendar"
 
-        r=requests.get(
+        headers = {
+            "User-Agent":
+            "Mozilla/5.0"
+        }
+
+        r = requests.get(
             url,
             headers=headers,
             timeout=20
         )
 
-
-        soup=BeautifulSoup(
+        soup = BeautifulSoup(
             r.text,
-            "lxml"
+            "html.parser"
         )
 
 
+        news = []
 
-        result=[]
-
-
-        for row in soup.select(
+        rows = soup.select(
             "tr.calendar__row"
-        ):
+        )
 
 
-            country=row.select_one(
-                ".calendar__country"
+        today = datetime.now().strftime(
+            "%Y-%m-%d"
+        )
+
+
+        for row in rows:
+
+            impact = row.select_one(
+                ".impact"
             )
 
-
-            impact=row.select_one(
-                ".calendar__impact"
+            currency = row.select_one(
+                ".calendar__currency"
             )
 
-
-            event=row.select_one(
+            event = row.select_one(
                 ".calendar__event"
             )
 
 
-
-            if not country or not impact or not event:
+            if not impact or not currency or not event:
                 continue
 
 
-
-            if "USD" in country.text:
-
-                if "high" in str(impact).lower():
-
-
-                    result.append(
-                        "🔴 "+event.text.strip()
-                    )
+            # فقط آمریکا
+            if currency.text.strip() != "USD":
+                continue
 
 
+            # فقط خبر قرمز
+            if "red" not in impact.get(
+                "class",
+                []
+            ):
+                continue
 
-        if not result:
 
-            return "امروز خبر قرمز مهم آمریکا وجود ندارد."
+            news.append(
+                f"🔴 USD | {event.text.strip()}"
+            )
 
 
+        if not news:
+            return "امروز خبر قرمز مهم آمریکا پیدا نشد."
 
-        return "\n".join(result)
 
+        return "\n".join(news[:10])
 
 
     except Exception as e:
 
-        return "خطای خبر: "+str(e)
+        return (
+            "خطا در دریافت اخبار: "
+            + str(e)
+        )
