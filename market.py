@@ -1,25 +1,29 @@
 import requests
 import pandas as pd
 
-from config import MARKET_API_KEY, SYMBOL
+from config import MARKET_API_KEY
 
 
-def get_market(interval):
 
-    url = "https://api.twelvedata.com/time_series"
+def get_market(timeframe):
+
+    url = (
+        "https://api.twelvedata.com/time_series"
+    )
 
 
     params = {
 
-        "symbol": SYMBOL,
+        "symbol": "XAU/USD",
 
-        "interval": interval,
+        "interval": timeframe,
 
-        "outputsize": 150,
+        "outputsize": 120,
 
         "apikey": MARKET_API_KEY
 
     }
+
 
 
     r = requests.get(
@@ -32,8 +36,13 @@ def get_market(interval):
     data = r.json()
 
 
+
     if "values" not in data:
-        raise Exception(data)
+
+        raise Exception(
+            "Market data unavailable"
+        )
+
 
 
     df = pd.DataFrame(
@@ -41,13 +50,30 @@ def get_market(interval):
     )
 
 
-    df["datetime"] = pd.to_datetime(
-        df["datetime"]
+    df = df.rename(
+        columns={
+
+            "datetime":"date",
+
+            "open":"open",
+
+            "high":"high",
+
+            "low":"low",
+
+            "close":"close"
+
+        }
     )
 
 
-    df = df.sort_values(
-        "datetime"
+    df["date"] = pd.to_datetime(
+        df["date"]
+    )
+
+
+    df = df.set_index(
+        "date"
     )
 
 
@@ -57,14 +83,13 @@ def get_market(interval):
         "low",
         "close"
     ]:
-        df[c] = pd.to_numeric(
-            df[c]
-        )
+
+        df[c] = df[c].astype(float)
 
 
-    df = df.set_index(
-        "datetime"
-    )
+
+    df = df.sort_index()
+
 
 
     return df
