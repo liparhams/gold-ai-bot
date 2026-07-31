@@ -1,22 +1,7 @@
-import os
 import requests
 import asyncio
 from telegram import Bot
-
-
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-
-
-if not BOT_TOKEN:
-    raise Exception("BOT_TOKEN خالی است")
-
-if not CHAT_ID:
-    raise Exception("CHAT_ID خالی است")
-
-if not OPENROUTER_API_KEY:
-    raise Exception("OPENROUTER_API_KEY خالی است")
+from config import BOT_TOKEN, CHAT_ID, OPENROUTER_API_KEY
 
 
 def create_analysis():
@@ -28,44 +13,70 @@ def create_analysis():
         "Content-Type": "application/json"
     }
 
+    prompt = """
+تو یک تحلیلگر حرفه‌ای XAUUSD (Gold) هستی.
+
+هدف فقط تحلیل بازار است، نه دادن سیگنال خرید یا فروش.
+
+یک تحلیل تکنیکال حرفه‌ای و کوتاه ارائه بده.
+
+مواردی که بررسی کن:
+- روند کلی بازار
+- ساختار قیمت
+- تایم فریم چارت
+- حمایت و مقاومت مهم
+- مناطق عرضه و تقاضا
+- Order Block
+- Liquidity
+- شکست‌ها و واکنش قیمت
+- سناریوی احتمالی صعودی و نزولی
+
+فرمت خروجی:
+
+📊 تحلیل XAUUSD
+
+⏱ تایم فریم:
+...
+
+📈 وضعیت بازار:
+...
+
+📌 حمایت مهم:
+...
+
+📌 مقاومت مهم:
+...
+
+🧠 تحلیل تکنیکال:
+...
+
+🔎 سناریوها:
+🟢 صعود:
+...
+🔴 نزول:
+...
+
+⚠️ جمع بندی:
+...
+
+حداکثر 12 تا 15 خط باشد.
+سیگنال مستقیم خرید یا فروش نده.
+متن اضافه و کلمات بی‌ربط ننویس.
+
+@afinace - ai
+"""
+
     data = {
         "model": "meta-llama/llama-3.1-8b-instruct",
-        "max_tokens": 300,
         "messages": [
             {
-                "role": "system",
-                "content": "تو تحلیلگر XAUUSD هستی. فقط کوتاه و فارسی جواب بده."
-            },
-            {
                 "role": "user",
-                "content": """
-یک تحلیل کوتاه طلا XAUUSD بده.
-
-قالب دقیقا:
-
-📊 نتیجه:
-یک خط درباره روند
-
-🟢 نظر:
-خرید یا فروش یا صبر + دلیل کوتاه
-
-📌 حمایت:
-سطوح مهم
-
-📌 مقاومت:
-سطوح مهم
-
-⚠️ ریسک:
-یک خط کوتاه
-
-فقط همین بخش ها.
-حداکثر ۱۰ خط.
-هیچ متن انگلیسی یا توضیح اضافه ننویس.
-"""
+                "content": prompt
             }
-        ]
+        ],
+        "temperature": 0.3,
+        "max_tokens": 700
     }
-
 
     response = requests.post(
         url,
@@ -78,24 +89,20 @@ def create_analysis():
     if "choices" not in result:
         return "خطای OpenRouter:\n" + str(result)
 
-
-    text = result["choices"][0]["message"]["content"]
-
-    return text + "\n\n@afinace - ai"
+    return result["choices"][0]["message"]["content"]
 
 
 
 async def send_analysis():
 
-    analysis = create_analysis()
+    bot = Bot(token=BOT_TOKEN)
 
-    bot = Bot(BOT_TOKEN)
+    analysis = create_analysis()
 
     await bot.send_message(
         chat_id=CHAT_ID,
         text=analysis
     )
-
 
 
 if __name__ == "__main__":
