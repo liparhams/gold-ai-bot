@@ -1,4 +1,5 @@
 import asyncio
+
 from telegram import Bot
 
 from config import BOT_TOKEN, CHAT_ID
@@ -8,47 +9,43 @@ from chart import create_chart
 from analysis import analyze
 
 
-bot = Bot(token=BOT_TOKEN)
+
+bot = Bot(
+    token=BOT_TOKEN
+)
 
 
 
 async def send_analysis():
 
 
-    timeframes = {
-
-        "30min": "30 دقیقه",
-
-        "4h": "4 ساعته",
-
-        "1day": "روزانه"
-
-    }
+    frames = [
+        ("30min","30 دقیقه"),
+        ("4h","4 ساعته"),
+        ("1day","روزانه")
+    ]
 
 
-
-    for tf, name in timeframes.items():
+    for tf, name in frames:
 
         try:
 
-
-            print(f"Getting {tf} data...")
+            print(
+                f"Getting {tf}"
+            )
 
 
             data = get_market(tf)
 
 
-            chart_file = create_chart(
+            chart = create_chart(
                 data,
                 tf
             )
 
 
-            description = str(data[:50])
-
-
-            text = analyze(
-                description
+            analysis = analyze(
+                str(data[:100])
             )
 
 
@@ -57,35 +54,32 @@ async def send_analysis():
                 chat_id=CHAT_ID,
 
                 photo=open(
-                    chart_file,
+                    chart,
                     "rb"
                 ),
 
                 caption=f"""
-
 📊 XAUUSD AI ANALYSIS
 
 ⏱ تایم فریم:
 {name}
 
 
-{text}
+{analysis}
 
 
 @afinace - ai
-
 """
 
             )
 
 
-            print(
-                f"{tf} sent"
-            )
-
-
-
         except Exception as e:
+
+
+            print(
+                e
+            )
 
 
             await bot.send_message(
@@ -93,17 +87,17 @@ async def send_analysis():
                 chat_id=CHAT_ID,
 
                 text=f"""
-
-❌ خطا در تحلیل {tf}
+❌ خطا در {name}
 
 {e}
-
 """
 
             )
 
 
 
-asyncio.run(
-    send_analysis()
-)
+if __name__ == "__main__":
+
+    asyncio.run(
+        send_analysis()
+    )
