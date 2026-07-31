@@ -1,24 +1,51 @@
-name: Run Gold AI Bot
+name: Gold AI Bot
 
 on:
+
   workflow_dispatch:
 
+  schedule:
+    - cron: "*/30 * * * *"
+
+
 jobs:
+
   run:
+
     runs-on: ubuntu-latest
 
-    env:
-      BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
-      CHAT_ID: ${{ secrets.CHAT_ID }}
-      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
     steps:
-      - uses: actions/checkout@v4
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
 
       - name: Install
         run: |
-          pip install python-telegram-bot requests
+          pip install -r requirements.txt
 
-      - name: Run bot
+
+      - name: Run Bot
+
+        env:
+
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+
+          MODEL: ${{ secrets.MODEL }}
+
+          MARKET_API_KEY: ${{ secrets.MARKET_API_KEY }}
+
+
         run: |
           python main.py
