@@ -1,69 +1,104 @@
+import matplotlib.pyplot as plt
 import pandas as pd
-import mplfinance as mpf
+
+from ta.trend import EMAIndicator
+from ta.momentum import RSIIndicator
 
 
-def create_chart(data,name):
+def create_chart(df, timeframe):
+
+    df = df.copy()
 
 
-    df=pd.DataFrame(data)
+    # EMA
+    df["ema50"] = EMAIndicator(
+        close=df["close"],
+        window=50
+    ).ema_indicator()
 
 
-    df["time"]=pd.to_datetime(
-        df["time"]
+    df["ema200"] = EMAIndicator(
+        close=df["close"],
+        window=200
+    ).ema_indicator()
+
+
+    # RSI
+    df["rsi"] = RSIIndicator(
+        close=df["close"],
+        window=14
+    ).rsi()
+
+
+    plt.figure(
+        figsize=(12,6)
     )
 
 
-    df=df.set_index(
-        "time"
+    # کندل ساده
+    plt.plot(
+        df.index,
+        df["close"],
+        linewidth=1,
+        label="XAUUSD"
     )
 
 
-    df=df.sort_index()
-
-
-
-    df["EMA50"]=df["close"].ewm(
-        span=50
-    ).mean()
-
-
-
-    df["EMA200"]=df["close"].ewm(
-        span=200
-    ).mean()
-
-
-
-    file=f"{name}.png"
-
-
-
-    mpf.plot(
-
-        df,
-
-        type="candle",
-
-        style="charles",
-
-        addplot=[
-
-            mpf.make_addplot(
-                df["EMA50"]
-            ),
-
-            mpf.make_addplot(
-                df["EMA200"]
-            )
-
-        ],
-
-        figsize=(12,6),
-
-        savefig=file
-
+    plt.plot(
+        df.index,
+        df["ema50"],
+        label="EMA 50"
     )
 
 
+    plt.plot(
+        df.index,
+        df["ema200"],
+        label="EMA 200"
+    )
 
-    return file
+
+    plt.title(
+        f"XAUUSD {timeframe}"
+    )
+
+
+    plt.xlabel(
+        "Time"
+    )
+
+
+    plt.ylabel(
+        "Price"
+    )
+
+
+    plt.legend()
+
+
+    plt.grid()
+
+
+    file_name = (
+        "chart_"
+        + timeframe.replace(
+            " ",
+            "_"
+        )
+        + ".png"
+    )
+
+
+    plt.tight_layout()
+
+
+    plt.savefig(
+        file_name,
+        dpi=200
+    )
+
+
+    plt.close()
+
+
+    return file_name
