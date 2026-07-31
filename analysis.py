@@ -1,120 +1,150 @@
 import requests
+import pandas as pd
 
-from config import (
-    OPENROUTER_API_KEY,
-    MODEL
-)
-
+from config import OPENROUTER_API_KEY, MODELS
 from news import get_today_news
 
 
+def ask_ai(prompt):
 
-def ai_analysis(data, tf):
+    for model in MODELS:
+
+        try:
+
+            r = requests.post(
+
+                "https://openrouter.ai/api/v1/chat/completions",
+
+                headers={
+                    "Authorization":
+                    f"Bearer {OPENROUTER_API_KEY}",
+
+                    "Content-Type":
+                    "application/json"
+                },
+
+
+                json={
+
+                    "model": model,
+
+                    "max_tokens": 3500,
+
+                    "temperature": 0.2,
+
+                    "messages":[
+
+                        {
+                            "role":"user",
+                            "content":prompt
+                        }
+
+                    ]
+
+                },
+
+                timeout=90
+            )
+
+
+            data = r.json()
+
+
+            if "choices" in data:
+
+                return data["choices"][0]["message"]["content"]
+
+
+        except Exception:
+
+            continue
+
+
+    return "❌ هیچ مدل AI در دسترس نیست."
+
+
+
+
+def ai_analysis(df, timeframe):
+
+
+    last = df.tail(100).to_string()
+
+
+    news = get_today_news()
 
 
     prompt = f"""
 
-تو یک تحلیلگر حرفه‌ای XAUUSD هستی.
+تو تحلیلگر حرفه‌ای XAUUSD هستی.
 
 تایم فریم:
-{tf}
+{timeframe}
 
 
 داده کندل:
 
-{data}
+{last}
 
 
-اخبار مهم امروز:
+اخبار امروز:
 
-{get_today_news()}
+{news}
 
 
-تحلیل را فقط با این ساختار بده:
+یک تحلیل حرفه‌ای بده:
+
 
 📊 XAUUSD AI ANALYSIS
 
-⏱ تایم فریم
 
-📈 Trend
+⏱ تایم فریم:
 
-💰 Price
 
-📌 Support
+📈 Trend:
+روند با ساختار بازار
 
-📌 Resistance
 
-🧠 Smart Money
+💰 Price:
+قیمت فعلی
+
+
+📌 Support:
+سه حمایت مهم
+
+
+📌 Resistance:
+سه مقاومت مهم
+
+
+🧠 Smart Money:
+
 
 Market Structure:
 Liquidity:
 Order Block:
 BOS:
+Trend:
 
-🟢 سناریو صعود
 
-🔴 سناریو نزول
+🔎 سناریو صعود:
 
-⚠️ جمع بندی
+
+🔴 سناریو نزول:
+
+
+⚠️ جمع بندی:
 
 
 قوانین:
-- عدد خیالی نساز
-- سلام و مقدمه ننویس
-- تحلیل واقعی بر اساس داده بده
-- سیگنال قطعی خرید فروش نده
+
+- مقدمه ننویس
+- سلام ننویس
+- عدد از خودت نساز
+- سیگنال قطعی نده
+- فقط بر اساس داده کندل تحلیل کن
 
 """
 
 
-    response = requests.post(
-
-        "https://openrouter.ai/api/v1/chat/completions",
-
-        headers={
-
-            "Authorization":
-            f"Bearer {OPENROUTER_API_KEY}",
-
-            "Content-Type":
-            "application/json"
-
-        },
-
-
-        json={
-
-            "model": MODEL,
-
-            "max_tokens": 3000,
-
-            "temperature": 0.3,
-
-            "messages":[
-
-                {
-                    "role":"user",
-                    "content":prompt
-                }
-
-            ]
-
-        },
-
-        timeout=90
-
-    )
-
-
-    result = response.json()
-
-
-    if "choices" not in result:
-
-        return (
-            "❌ خطای OpenRouter:\n"
-            + str(result)
-        )
-
-
-    return result["choices"][0]["message"]["content"]
+    return ask_ai(prompt)
