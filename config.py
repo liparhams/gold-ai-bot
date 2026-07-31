@@ -1,5 +1,5 @@
-BOT_TOKEN = "توکن ربات تلگرام را اینجا بگذار"
+BOT_TOKEN = "توکن واقعی ربات"
 
-CHAT_ID = "-100xxxxxxxxxx"
+CHAT_ID = "-100آیدی_کانال_یا_گروه"
 
-OPENROUTER_API_KEY = "sk-or-v1-xxxxxxxxxxxxxxxx"
+OPENROUTER_API_KEY = "کلید واقعی OpenRouter"
