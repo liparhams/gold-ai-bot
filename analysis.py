@@ -13,38 +13,58 @@ def ai_analysis(data, tf):
 
 
     prompt = f"""
-تو تحلیلگر حرفه‌ای XAUUSD هستی.
+
+تو یک تحلیلگر حرفه‌ای XAUUSD هستی.
 
 تایم فریم:
 {tf}
 
+
 داده کندل:
+
 {data}
 
-اخبار مهم امروز آمریکا:
+
+اخبار مهم امروز:
+
 {get_today_news()}
 
 
-تحلیل بده شامل:
+تحلیل را فقط با این ساختار بده:
+
+📊 XAUUSD AI ANALYSIS
+
+⏱ تایم فریم
 
 📈 Trend
+
 💰 Price
+
 📌 Support
+
 📌 Resistance
-🧠 Market Structure
-💧 Liquidity
-📦 Order Block
-🔹 BOS
+
+🧠 Smart Money
+
+Market Structure:
+Liquidity:
+Order Block:
+BOS:
+
 🟢 سناریو صعود
+
 🔴 سناریو نزول
+
 ⚠️ جمع بندی
 
 
-قانون:
-عدد خیالی نساز.
-مقدمه و سلام نده.
-"""
+قوانین:
+- عدد خیالی نساز
+- سلام و مقدمه ننویس
+- تحلیل واقعی بر اساس داده بده
+- سیگنال قطعی خرید فروش نده
 
+"""
 
 
     response = requests.post(
@@ -61,11 +81,14 @@ def ai_analysis(data, tf):
 
         },
 
+
         json={
 
             "model": MODEL,
 
-            "max_tokens": 2500,
+            "max_tokens": 3000,
+
+            "temperature": 0.3,
 
             "messages":[
 
@@ -78,7 +101,7 @@ def ai_analysis(data, tf):
 
         },
 
-        timeout=60
+        timeout=90
 
     )
 
@@ -86,16 +109,12 @@ def ai_analysis(data, tf):
     result = response.json()
 
 
-
-    # اگر OpenRouter خطا داد
-
     if "choices" not in result:
 
         return (
-            "❌ خطای OpenRouter:\n\n"
+            "❌ خطای OpenRouter:\n"
             + str(result)
         )
-
 
 
     return result["choices"][0]["message"]["content"]
