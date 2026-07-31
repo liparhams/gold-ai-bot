@@ -1,5 +1,10 @@
-BOT_TOKEN = "توکن_تلگرام_اینجا"
+import os
 
-CHAT_ID = "-100xxxxxxxxxx"
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
-OPENROUTER_API_KEY = "sk-or-v1-xxxxxxxxxxxxxxxx"
+MODEL = os.getenv(
+    "MODEL",
+    "google/gemini-2.0-flash-001"
+)
