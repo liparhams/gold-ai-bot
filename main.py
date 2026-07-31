@@ -2,17 +2,16 @@ import os
 import requests
 import asyncio
 from telegram import Bot
-from dotenv import load_dotenv
 
-load_dotenv()
-
-TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
+# Telegram
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
+
+# OpenRouter
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 
 def create_analysis():
-
     url = "https://openrouter.ai/api/v1/chat/completions"
 
     headers = {
@@ -20,39 +19,39 @@ def create_analysis():
         "Content-Type": "application/json"
     }
 
-    prompt = """
-برای طلا XAUUSD یک تحلیل کوتاه بده.
-
-فرمت دقیقا:
-
-📊 نتیجه:
-(حداکثر 2 خط)
-
-🟢 حمایت:
-(سطوح مهم)
-
-🔴 مقاومت:
-(سطوح مهم)
-
-📈 نظر معامله:
-(خرید یا فروش یا صبر)
-
-⚠️ ریسک:
-(یک خط)
-
-حداکثر 10 خط بنویس.
-از توضیحات اضافه خودداری کن.
-"""
-
     data = {
         "model": "meta-llama/llama-3.1-8b-instruct",
         "messages": [
             {
                 "role": "user",
-                "content": prompt
+                "content": """
+برای XAUUSD یک تحلیل کوتاه بده.
+
+فرمت حتما این باشد:
+
+📊 نتیجه:
+(روند کلی)
+
+🟢 یا 🔴 نظر:
+(خرید یا فروش)
+
+📌 حمایت:
+(سطوح مهم)
+
+📌 مقاومت:
+(سطوح مهم)
+
+⚠️ ریسک:
+(یک خط)
+
+حداکثر ۱۰ خط بنویس.
+
+آخر پیام دقیقا اضافه کن:
+
+@afinace - ai
+"""
             }
-        ],
-        "max_tokens": 300
+        ]
     }
 
     response = requests.post(
@@ -63,19 +62,24 @@ def create_analysis():
 
     result = response.json()
 
-    if "choices" not in result:
-        return f"خطای OpenRouter: {result}"
+    print(result)
 
-    text = result["choices"][0]["message"]["content"]
-
-    return text + "\n\n@afinace - ai"
+    return result["choices"][0]["message"]["content"]
 
 
 async def send_analysis():
 
-    bot = Bot(token=TELEGRAM_TOKEN)
+    if not BOT_TOKEN:
+        print("BOT_TOKEN خالی است")
+        return
+
+    if not CHAT_ID:
+        print("CHAT_ID خالی است")
+        return
 
     analysis = create_analysis()
+
+    bot = Bot(BOT_TOKEN)
 
     await bot.send_message(
         chat_id=CHAT_ID,
