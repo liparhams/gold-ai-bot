@@ -1,21 +1,49 @@
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
+
+
+IRAN_OFFSET = timedelta(hours=3, minutes=30)
+
+
+def iran_time(utc_time):
+
+    try:
+
+        dt = datetime.strptime(
+            utc_time,
+            "%Y-%m-%dT%H:%M:%S"
+        )
+
+        iran = dt + IRAN_OFFSET
+
+        return iran.strftime(
+            "%H:%M"
+        )
+
+    except:
+
+        return "-"
+
 
 
 def get_today_news():
 
     try:
 
-        url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json"
+        url = (
+            "https://nfs.faireconomy.media/"
+            "ff_calendar_thisweek.json"
+        )
 
 
-        response = requests.get(
+        r = requests.get(
             url,
             timeout=20
         )
 
 
-        events = response.json()
+        events = r.json()
+
 
 
         today = datetime.utcnow().strftime(
@@ -23,56 +51,71 @@ def get_today_news():
         )
 
 
-        important = []
+
+        news = []
 
 
-        for event in events:
+
+        for e in events:
+
 
             if (
-                event.get("country") == "USD"
-                and event.get("impact") == "High"
-                and today in event.get("date","")
+                e.get("country") == "USD"
+                and e.get("impact") == "High"
+                and today in e.get("date","")
             ):
 
-                important.append(event)
+
+                news.append(e)
 
 
 
-        if not important:
+        if not news:
 
-            return (
-                "📰 اخبار امروز USD\n\n"
-                "امروز خبر قرمز مهم آمریکا وجود ندارد."
+            return """
+📰 اخبار مهم USD امروز
+
+✅ امروز خبر قرمز مهم آمریکا وجود ندارد.
+"""
+
+
+
+        text = """
+📰 اخبار قرمز USD امروز
+
+"""
+
+
+
+        for e in news:
+
+
+            time = iran_time(
+                e.get("date","")
             )
 
 
-
-        text = "📰 اخبار مهم امروز USD\n\n"
-
-
-
-        for x in important:
-
-
             text += f"""
-⏰ {x.get('time','')}
-🇺🇸 {x.get('title','')}
+🔴 {e.get('title','')}
 
-Actual: {x.get('actual','-')}
-Forecast: {x.get('forecast','-')}
-Previous: {x.get('previous','-')}
+⏰ ساعت ایران: {time}
+
+📊 پیش‌بینی: {e.get('forecast','-')}
+📌 قبلی: {e.get('previous','-')}
 
 """
+
 
 
         return text
 
 
 
-    except Exception as e:
+    except Exception as ex:
 
 
-        return (
-            "📰 اخبار امروز USD\n\n"
-            "تقویم اقتصادی در دسترس نیست."
-        )
+        return f"""
+📰 اخبار USD
+
+❌ خطا در دریافت تقویم اقتصادی
+"""
