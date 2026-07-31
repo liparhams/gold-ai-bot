@@ -1,181 +1,109 @@
 import asyncio
-import requests
-
 from telegram import Bot
 
-from config import (
-    BOT_TOKEN,
-    CHAT_ID,
-    OPENROUTER_API_KEY,
-    MODEL,
-    OPENROUTER_URL
-)
+from config import BOT_TOKEN, CHAT_ID
 
-from market import get_gold_data
+from market import get_market
+from chart import create_chart
+from analysis import analyze
 
 
-
-def get_ai_analysis():
-
-
-    market_data = get_gold_data()
-
-
-    prompt = f"""
-
-تو یک تحلیلگر حرفه‌ای XAUUSD هستی.
-
-داده واقعی بازار:
-
-{market_data}
-
-
-بر اساس همین داده تحلیل کن.
-
-قوانین:
-
-- سیگنال قطعی خرید یا فروش نده.
-- عدد خیالی نساز.
-- حمایت و مقاومت را از داده استخراج کن.
-- تحلیل کامل بده.
-
-
-فرمت:
-
-📊 تحلیل XAUUSD
-
-⏱ تایم فریم:
-4H
-
-
-📈 روند بازار:
-
-
-💰 وضعیت قیمت:
-
-
-📌 حمایت های مهم:
-
-
-📌 مقاومت های مهم:
-
-
-🧠 تحلیل تکنیکال:
-
-Market Structure
-Liquidity
-Order Block
-BOS
-Trend
-
-
-🔎 سناریوها:
-
-
-🟢 سناریوی صعود:
-
-
-🔴 سناریوی نزول:
-
-
-⚠️ جمع بندی:
-
-
-@afinace - ai
-
-"""
-
-
-    headers = {
-
-        "Authorization":
-        f"Bearer {OPENROUTER_API_KEY}",
-
-        "Content-Type":
-        "application/json",
-
-        "HTTP-Referer":
-        "https://github.com",
-
-        "X-Title":
-        "Afinace AI"
-
-    }
-
-
-    body = {
-
-        "model": MODEL,
-
-        "messages": [
-
-            {
-
-                "role": "user",
-
-                "content": prompt
-
-            }
-
-        ],
-
-        "max_tokens": 2500,
-
-        "temperature": 0.2
-
-    }
-
-
-    response = requests.post(
-
-        OPENROUTER_URL,
-
-        headers=headers,
-
-        json=body,
-
-        timeout=90
-
-    )
-
-
-    result = response.json()
-
-
-    if "choices" in result:
-
-        return result["choices"][0]["message"]["content"]
-
-
-    return "خطای OpenRouter:\n" + str(result)
-
-
+bot = Bot(token=BOT_TOKEN)
 
 
 
 async def send_analysis():
 
 
-    analysis = get_ai_analysis()
+    timeframes = {
 
+        "30min": "30 دقیقه",
 
-    bot = Bot(
-        token=BOT_TOKEN
-    )
+        "4h": "4 ساعته",
 
+        "1day": "روزانه"
 
-    await bot.send_message(
-
-        chat_id=CHAT_ID,
-
-        text=analysis
-
-    )
+    }
 
 
 
+    for tf, name in timeframes.items():
+
+        try:
 
 
-if __name__ == "__main__":
+            print(f"Getting {tf} data...")
 
-    asyncio.run(send_analysis())
+
+            data = get_market(tf)
+
+
+            chart_file = create_chart(
+                data,
+                tf
+            )
+
+
+            description = str(data[:50])
+
+
+            text = analyze(
+                description
+            )
+
+
+            await bot.send_photo(
+
+                chat_id=CHAT_ID,
+
+                photo=open(
+                    chart_file,
+                    "rb"
+                ),
+
+                caption=f"""
+
+📊 XAUUSD AI ANALYSIS
+
+⏱ تایم فریم:
+{name}
+
+
+{text}
+
+
+@afinace - ai
+
+"""
+
+            )
+
+
+            print(
+                f"{tf} sent"
+            )
+
+
+
+        except Exception as e:
+
+
+            await bot.send_message(
+
+                chat_id=CHAT_ID,
+
+                text=f"""
+
+❌ خطا در تحلیل {tf}
+
+{e}
+
+"""
+
+            )
+
+
+
+asyncio.run(
+    send_analysis()
+)
