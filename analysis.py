@@ -1,91 +1,114 @@
 import requests
 
-from config import OPENROUTER_API_KEY, MODEL
+from config import (
+OPENROUTER_API_KEY,
+MODEL
+)
+
+from news import get_today_news
 
 
-def get_analysis(data, timeframe):
+
+def ai_analysis(data,tf):
 
 
-    prompt = f"""
-تو تحلیلگر حرفه‌ای XAUUSD هستی.
+    prompt=f"""
+
+تو تحلیلگر حرفه ای XAUUSD هستی.
 
 تایم فریم:
-{timeframe}
+{tf}
+
 
 داده کندل:
-{data.tail(50).to_string()}
+
+{data}
 
 
-تحلیل فقط با این ساختار:
 
-📈 Trend:
- 
-💰 Price:
+اخبار امروز آمریکا:
 
-📌 Support:
-۳ سطح
+{get_today_news()}
 
-📌 Resistance:
-۳ سطح
 
-🧠 Smart Money:
+
+فقط تحلیل بده.
+
+بدون سلام.
+بدون مقدمه.
+
+شامل:
+
+Trend
+
+Price
+
+Support
+
+Resistance
+
 Market Structure
+
 Liquidity
+
 Order Block
+
 BOS
 
-🟢 Bullish Scenario:
+سناریو صعود
 
-🔴 Bearish Scenario:
+سناریو نزول
 
-⚠️ Summary:
+جمع بندی
 
-قوانین:
-سلام و مقدمه ننویس.
-داستان تعریف نکن.
-عدد الکی نساز.
-حداکثر 700 کلمه.
+
+
+عدد خیالی نساز.
+
 """
 
 
-    url = "https://openrouter.ai/api/v1/chat/completions"
+
+    r=requests.post(
+
+        "https://openrouter.ai/api/v1/chat/completions",
+
+        headers={
+
+        "Authorization":
+        f"Bearer {OPENROUTER_API_KEY}",
+
+        "Content-Type":
+        "application/json"
+
+        },
 
 
-    headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json"
-    }
+        json={
 
+        "model":MODEL,
 
-    body = {
-
-        "model": MODEL,
+        "max_tokens":2500,
 
         "messages":[
+
             {
-                "role":"user",
-                "content":prompt
+
+            "role":"user",
+
+            "content":prompt
+
             }
-        ],
 
-        "max_tokens":1200
-    }
+        ]
 
+        }
 
-
-    r = requests.post(
-        url,
-        headers=headers,
-        json=body,
-        timeout=60
     )
 
 
-    result = r.json()
 
-
-    if "choices" not in result:
-        raise Exception(result)
+    result=r.json()
 
 
     return result["choices"][0]["message"]["content"]
