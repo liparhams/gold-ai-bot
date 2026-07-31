@@ -2,20 +2,13 @@ import asyncio
 import os
 from datetime import datetime
 
-import pytz
-
 from telegram import Bot
 
-from config import (
-    BOT_TOKEN,
-    CHAT_ID,
-    TIMEFRAMES,
-    SIGNATURE
-)
-
+from config import BOT_TOKEN, CHAT_ID, TIMEFRAMES
 from market import get_market
-from chart import create_chart
 from analysis import ai_analysis
+from chart import create_chart
+
 
 
 bot = Bot(
@@ -24,109 +17,84 @@ bot = Bot(
 
 
 
-def market_open():
+async def send_analysis():
 
 
-    tz = pytz.timezone(
-        "Europe/London"
-    )
-
-
-    now = datetime.now(tz)
-
-
-    # شنبه و یکشنبه
-    if now.weekday() >= 5:
-        return False
-
-
-    return True
-
-
-
-
-async def send():
-
-
-
-    if not market_open():
-
-
-        await bot.send_message(
-
-            chat_id=CHAT_ID,
-
-            text=
-            "⏸ بازار فارکس تعطیل است."
-
-        )
-
-
-        return
-
-
-
-    for title, tf in TIMEFRAMES.items():
-
+    for name, tf in TIMEFRAMES.items():
 
         try:
+
+            print(
+                "Getting data:",
+                name
+            )
 
 
             df = get_market(tf)
 
 
-
-            image = create_chart(
-
+            image_path = create_chart(
                 df,
-
-                title
-
+                name
             )
-
 
 
             analysis = ai_analysis(
-
                 df,
-
-                title
-
+                name
             )
 
 
 
-            # عکس کوتاه
+            # کپشن عکس کوتاه برای محدودیت تلگرام
+
+            caption_limit = 900
+
+
+            caption = f"""
+📊 XAUUSD AI
+
+⏱ تایم فریم:
+{name}
+
+{analysis[:caption_limit]}
+"""
+
 
             await bot.send_photo(
 
                 chat_id=CHAT_ID,
 
                 photo=open(
-                    image,
+                    image_path,
                     "rb"
                 ),
 
-                caption=
-                f"📊 XAUUSD AI\n\n"
-                f"⏱ {title}"
+                caption=caption
 
             )
 
 
 
-            # متن تحلیل
+            # ادامه تحلیل اگر طولانی بود
 
-            await bot.send_message(
+            if len(analysis) > caption_limit:
 
-                chat_id=CHAT_ID,
 
-                text=
-                analysis
-                +
-                SIGNATURE
+                for i in range(
+                    caption_limit,
+                    len(analysis),
+                    3500
+                ):
 
-            )
+
+                    await bot.send_message(
+
+                        chat_id=CHAT_ID,
+
+                        text=analysis[i:i+3500]
+
+                    )
 
 
 
@@ -137,8 +105,11 @@ async def send():
 
                 chat_id=CHAT_ID,
 
-                text=
-                f"❌ خطا در {title}\n\n{e}"
+                text=f"""
+❌ خطا در {name}
+
+{str(e)}
+"""
 
             )
 
@@ -150,5 +121,5 @@ if __name__ == "__main__":
 
 
     asyncio.run(
-        send()
+        send_analysis()
     )
