@@ -10,25 +10,25 @@ def get_ai_analysis():
     url = "https://openrouter.ai/api/v1/chat/completions"
 
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://github.com",
-        "X-Title": "Gold AI Bot"
+        "Authorization": "Bearer " + OPENROUTER_API_KEY.strip(),
+        "Content-Type": "application/json"
     }
 
     prompt = """
-تو یک تحلیلگر حرفه‌ای XAUUSD هستی.
+You are a professional XAUUSD gold market analyst.
 
-برای طلا تحلیل تکنیکال بده.
+Analyze gold price technically.
 
-مهم:
-- سیگنال قطعی خرید یا فروش نده.
-- عددهای حمایت و مقاومت را منطقی بنویس.
-- از قیمت‌های قدیمی استفاده نکن.
-- تحلیل را مثل یک تریدر حرفه‌ای توضیح بده.
-- فقط 10 تا 12 خط باشد.
+Rules:
+- Do NOT give a direct buy or sell signal.
+- Act like an analyst, not a signal bot.
+- Create realistic support and resistance zones.
+- Explain trend, structure, momentum and scenarios.
+- Timeframe: 30M
+- Keep it around 10-15 lines.
+- Use current gold price context, not old prices.
 
-فرمت:
+Format:
 
 📊 تحلیل XAUUSD
 
@@ -36,13 +36,13 @@ def get_ai_analysis():
 
 📈 روند بازار:
 
-📌 حمایت مهم:
+📌 حمایت های مهم:
 
-📌 مقاومت مهم:
+📌 مقاومت های مهم:
 
 🧠 تحلیل تکنیکال:
 
-🔎 سناریوها:
+🔎 سناریوهای احتمالی:
 
 ⚠️ جمع بندی:
 
@@ -57,7 +57,7 @@ def get_ai_analysis():
                 "content": prompt
             }
         ],
-        "temperature": 0.4
+        "temperature": 0.3
     }
 
     response = requests.post(
@@ -72,19 +72,22 @@ def get_ai_analysis():
     if "choices" in result:
         return result["choices"][0]["message"]["content"]
 
-    return "خطای OpenRouter:\n" + str(result)
+    else:
+        return "خطای OpenRouter:\n" + str(result)
 
 
 
 async def send_analysis():
 
-    bot = Bot(token=BOT_TOKEN)
+    bot = Bot(
+        token=BOT_TOKEN.strip()
+    )
 
-    analysis = get_ai_analysis()
+    text = get_ai_analysis()
 
     await bot.send_message(
         chat_id=CHAT_ID,
-        text=analysis
+        text=text
     )
 
 
